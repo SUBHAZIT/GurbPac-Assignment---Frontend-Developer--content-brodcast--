@@ -34,8 +34,10 @@ export function AuthProvider({ children }) {
     const role = currentUser.profile?.role;
     if (role === 'principal') {
       navigate('/principal/dashboard');
-    } else {
+    } else if (role === 'teacher') {
       navigate('/teacher/dashboard');
+    } else {
+      navigate('/live/all');
     }
     return data;
   };
@@ -46,8 +48,18 @@ export function AuthProvider({ children }) {
     navigate('/auth');
   };
 
+  // Refresh user data (after profile edit)
+  const refreshUser = async () => {
+    try {
+      const currentUser = await authService.getCurrentUser();
+      setUser(currentUser);
+    } catch (error) {
+      console.error('Failed to refresh user:', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

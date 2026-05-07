@@ -12,8 +12,10 @@ export default function DashboardLayout({ children, allowedRole }) {
     if (!loading && !user) {
       navigate('/auth');
     } else if (!loading && allowedRole && user?.profile?.role !== allowedRole) {
-      const correctPath = user?.profile?.role === 'principal' ? '/principal/dashboard' : '/teacher/dashboard';
-      navigate(correctPath);
+      const role = user?.profile?.role;
+      if (role === 'principal') navigate('/principal/dashboard');
+      else if (role === 'teacher') navigate('/teacher/dashboard');
+      else navigate('/live/all');
     }
   }, [user, loading, navigate, allowedRole]);
 

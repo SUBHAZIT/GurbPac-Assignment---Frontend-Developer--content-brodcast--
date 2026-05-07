@@ -7,51 +7,58 @@ StreamPro – Frontend Technical Notes
 
 src/
 ├── components/
-│   ├── principal/          # Principal-specific components (ApprovalModal)
-│   ├── shared/             # Shared/reusable components (AuthForm, Sidebar, 
-│   │                         DashboardLayout, StatsCards, RootRedirect)
-│   ├── teacher/            # Teacher-specific components (UploadForm)
-│   └── ui/                 # shadcn/ui primitives (Button, Card, Input, Table, etc.)
+│   ├── principal/          # ApprovalModal
+│   ├── shared/             # AuthForm, Sidebar, DashboardLayout, 
+│   │                         StatsCards, RootRedirect
+│   ├── teacher/            # UploadForm
+│   └── ui/                 # shadcn/ui primitives
 ├── context/
-│   └── AuthContext.jsx     # Global auth state (user, login, logout)
-├── hooks/                  # Custom hooks (reserved for future use)
+│   └── AuthContext.jsx     # Global auth state (user, login, logout, refreshUser)
+├── hooks/                  # Custom hooks
 ├── lib/
-│   ├── supabase.js         # Supabase client initialization
-│   └── utils.js            # Utility functions (cn for className merging)
+│   ├── supabase.js         # Supabase client
+│   └── utils.js            # cn() class merger
 ├── pages/
 │   ├── Landing.jsx         # Public landing page
 │   ├── live/
-│   │   └── LiveBroadcast.jsx  # Public broadcast viewer (/live/:teacherId)
+│   │   └── LiveBroadcast.jsx  # Public broadcast viewer (view-gated)
 │   ├── principal/
-│   │   ├── Dashboard.jsx   # Principal overview with stats
-│   │   ├── Pending.jsx     # Pending approval queue
-│   │   └── AllContent.jsx  # Filterable content library
+│   │   ├── Dashboard.jsx   # Principal overview
+│   │   ├── Pending.jsx     # Pending approvals queue
+│   │   ├── AllContent.jsx  # Filterable content library
+│   │   └── ManageTeachers.jsx  # Staff account creation
+│   ├── shared/
+│   │   └── Profile.jsx     # Profile edit (all roles)
 │   └── teacher/
-│       ├── Dashboard.jsx   # Teacher overview with stats
+│       ├── Dashboard.jsx   # Teacher overview
 │       ├── Upload.jsx      # Upload page wrapper
 │       └── Content.jsx     # Teacher's content list
 ├── services/
-│   ├── auth.service.js     # Authentication API calls
-│   ├── content.service.js  # Content CRUD operations
-│   └── approval.service.js # Approval workflow operations
-├── utils/                  # Shared utilities
+│   ├── auth.service.js     # Auth + profile management
+│   ├── content.service.js  # Content CRUD
+│   ├── approval.service.js # Approval workflow
+│   └── viewer.service.js   # View tracking for free-tier
+├── utils/
 ├── App.jsx                 # Route definitions
-├── main.jsx                # App entry point
-└── globals.css             # Global styles + Tailwind directives
+├── main.jsx                # Entry point + providers
+└── globals.css             # Tailwind + global styles
 
 
 2. AUTHENTICATION FLOW
 ================================================================
 
-- Uses Supabase Auth (email/password)
-- On signup, a Postgres trigger (handle_new_user) auto-creates a 
-  profile row with role and full_name from user metadata
-- AuthContext stores the authenticated user globally via React Context
-- On login: credentials → Supabase Auth → fetch profile → role-based redirect
-- Token is managed by Supabase JS client (auto-refreshes, stored in localStorage)
-- Token is automatically attached to all Supabase requests via the client
-- Unauthenticated users are redirected to /auth by DashboardLayout
-- On logout: clear user state → redirect to /auth
+- Supabase Auth (email/password)
+- On signup, a Postgres trigger auto-creates a profile row
+- Public signup only creates 'viewer' accounts
+- Teacher/principal accounts created only by principals via Manage Staff
+- AuthContext stores user globally via React Context
+- Login → Supabase Auth → fetch profile → role-based redirect:
+    principal → /principal/dashboard
+    teacher  → /teacher/dashboard
+    viewer   → /live/all
+- Token auto-managed by Supabase JS client (localStorage + auto-refresh)
+- DashboardLayout guards all protected routes
+- Logout → clear state → redirect to /auth
 
 
 3. ROLE-BASED ROUTING
@@ -66,67 +73,100 @@ Principal routes:
   /principal/dashboard  → PrincipalDashboard
   /principal/pending    → PendingApprovals
   /principal/content    → AllContent
+  /principal/manage     → ManageTeachers (create staff)
+
+Shared routes:
+  /profile              → Profile edit (all roles)
 
 Public routes:
-  /                     → RootRedirect (auth-aware: redirects to dashboard or landing)
+  /                     → RootRedirect
   /landing              → LandingPage
-  /auth                 → AuthForm (login/signup)
-  /live/:teacherId      → LiveBroadcast (no auth required)
+  /auth                 → AuthForm (login + viewer signup)
+  /live/:teacherId      → LiveBroadcast (10 free views, then login)
 
-Protected routes are enforced by DashboardLayout:
-  - Checks if user is authenticated
-  - Checks if user's role matches the allowedRole prop
-  - Redirects to the correct dashboard if role mismatch
-  - Shows skeleton loading state while checking auth
+Protected routes enforced by DashboardLayout:
+  - Checks authenticated
+  - Checks role matches allowedRole
+  - Redirects on mismatch
+  - Shows skeleton during check
 
 
 4. API INTEGRATION APPROACH
 ================================================================
 
 All API calls go through a dedicated service layer:
-  - services/auth.service.js     → login, signup, logout, getCurrentUser, updateProfile
-  - services/content.service.js  → uploadContent, getMyContent, getAllContent, 
-                                    getPendingContent, updateContentStatus, deleteContent,
-                                    getLiveContent, getStats
-  - services/approval.service.js → getPendingContent, approveContent, rejectContent,
-                                    getApprovalStats
+  - auth.service.js     → login, signup, logout, getCurrentUser,
+                           getSession, updateProfile
+  - content.service.js  → uploadContent, getMyContent, getAllContent,
+                           getPendingContent, updateContentStatus,
+                           deleteContent, getLiveContent, getStats
+  - approval.service.js → getPendingContent, approveContent,
+                           rejectContent, getApprovalStats
+  - viewer.service.js   → recordView, getViewCount, checkViewAccess
 
-NO direct Supabase calls are made inside components.
+NO direct Supabase calls inside components.
 
-Error handling pattern:
+Error handling:
   - Services throw errors on failure
-  - Components catch errors and display toast notifications
-  - Loading states are tracked per-component via useState
+  - Components catch + show toast notifications
+  - Loading states tracked per-component via useState
 
-The service layer is easily replaceable — swap Supabase calls with 
-any REST/GraphQL client without touching components.
+API layer is replaceable — swap Supabase with any REST/GraphQL
+backend without touching components.
 
 
 5. STATE MANAGEMENT APPROACH
 ================================================================
 
 - Global state: React Context (AuthContext) for user/auth only
-- Local state: useState for component-specific data (content lists, filters, etc.)
-- No external state library (Redux, Zustand) needed — app complexity doesn't warrant it
-- Form state: React Hook Form with Zod validation
-- Server state: Fetched on mount via useEffect, refetched after mutations
+  Exposes: user, loading, login, logout, refreshUser
+- Local state: useState for component-specific data
+- Form state: React Hook Form (independent from component state)
+- No Redux/Zustand — complexity doesn't warrant it
 
-Design principles:
-  - Keep state minimal and close to where it's used
-  - Avoid prop drilling via Context for cross-cutting concerns
-  - Derive computed values (filtered lists, stats) instead of storing duplicates
+Principles:
+  - State kept close to where it's used
+  - No prop drilling via Context
+  - Derived values computed, not stored
+  - refreshUser() for post-edit profile updates
 
 
-6. ASSUMPTIONS
+6. VIEW GATING (PUBLIC BROADCAST)
 ================================================================
 
-- Supabase is the backend — auth, database, and file storage
-- Row Level Security (RLS) enforces authorization server-side
-- File uploads are limited to images (JPG, PNG, GIF) with 10MB max
-- Content rotation on the live page uses client-side interval timers
-- The live broadcast page polls for new content every 60 seconds
-- Teachers can only see/manage their own content
-- Principals can see all content and approve/reject any submission
-- Rejection requires a mandatory reason (enforced in UI and modal)
-- The app is a client-side SPA (Vite + React), not SSR
-- All authorization is enforced server-side via Supabase RLS policies
+Anonymous viewers get 10 free unique content views:
+  - Tracked server-side in public_views table (Supabase)
+  - Browser fingerprint (navigator + screen + timezone hash) as viewer ID
+  - RLS allows INSERT/SELECT but NOT UPDATE/DELETE (tamper-proof)
+  - Server count is authoritative — clearing cookies doesn't reset
+  - After 10 views → paywall screen → sign up as viewer
+  - Logged-in users get unlimited access
+
+
+7. STAFF MANAGEMENT
+================================================================
+
+- Public signup → viewer only (no role selector)
+- Teacher/principal accounts → created by principals only
+- Manage Staff page: /principal/manage
+  - Form creates user via Supabase Auth with role metadata
+  - Trigger auto-creates profile row
+  - Success modal shows credentials with copy-to-clipboard
+  - Credentials shown only once
+  - Staff list with role badges and join dates
+
+
+8. ASSUMPTIONS
+================================================================
+
+- Supabase is the backend (auth, database, storage)
+- Row Level Security (RLS) enforces all authorization server-side
+- File uploads: JPG, PNG, GIF only, 10MB max
+- Content rotation: client-side interval timers
+- Live broadcast polls every 60 seconds
+- Teachers see/manage own content only
+- Principals see all content, approve/reject any
+- Viewers watch broadcasts only
+- Rejection requires mandatory reason
+- App is a client-side SPA (Vite + React), not SSR
+- All auth enforced server-side via RLS
