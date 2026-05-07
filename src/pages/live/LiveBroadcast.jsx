@@ -1,24 +1,43 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import { contentService } from '@/services/content.service';
-import { Play, Clock, BookOpen, User, Info, Loader2 } from 'lucide-react';
+import { viewerService } from '@/services/viewer.service';
+import { Play, Clock, BookOpen, User, Info, Loader2, Lock, Radio, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LiveBroadcast() {
   const { teacherId } = useParams();
+  const { user } = useAuth();
   const [content, setContent] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState(0);
+
+  // View gating state
+  const [viewAccess, setViewAccess] = useState({ allowed: true, viewsUsed: 0, limit: 10 });
+  const [showPaywall, setShowPaywall] = useState(false);
+
+  // Check view access on mount
+  useEffect(() => {
+    async function checkAccess() {
+      if (user) return; // Logged in users have unlimited access
+      const access = await viewerService.checkViewAccess();
+      setViewAccess(access);
+      if (!access.allowed) {
+        setShowPaywall(true);
+      }
+    }
+    checkAccess();
+  }, [user]);
 
   useEffect(() => {
     async function fetchLive() {
       try {
         const data = await contentService.getLiveContent(teacherId);
         setContent(data);
-        // Reset index if it's out of bounds after a refresh
         if (data.length > 0) {
           if (currentIndex >= data.length) setCurrentIndex(0);
           if (timeLeft === 0) setTimeLeft(data[0].rotation_duration || 10);
@@ -31,12 +50,32 @@ export default function LiveBroadcast() {
     }
 
     fetchLive();
-    const interval = setInterval(fetchLive, 60000); // Check for new content every minute
+    const interval = setInterval(fetchLive, 60000);
     return () => clearInterval(interval);
   }, [teacherId]);
 
+  // Record view when content changes (only for non-logged-in users)
   useEffect(() => {
-    if (content.length <= 1) return;
+    async function recordAndCheck() {
+      if (user || content.length === 0) return;
+      
+      const activeItem = content[currentIndex];
+      if (!activeItem) return;
+
+      await viewerService.recordView(activeItem.id);
+      const access = await viewerService.checkViewAccess();
+      setViewAccess(access);
+      
+      if (!access.allowed) {
+        setShowPaywall(true);
+      }
+    }
+    recordAndCheck();
+  }, [currentIndex, content, user]);
+
+  // Auto-rotation timer
+  useEffect(() => {
+    if (content.length <= 1 || showPaywall) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -49,8 +88,9 @@ export default function LiveBroadcast() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [content, currentIndex]);
+  }, [content, currentIndex, showPaywall]);
 
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8">
@@ -60,6 +100,7 @@ export default function LiveBroadcast() {
     );
   }
 
+  // Empty state
   if (content.length === 0) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8 text-center">
@@ -68,7 +109,7 @@ export default function LiveBroadcast() {
         </div>
         <h1 className="text-3xl font-bold text-white mb-2">No content available</h1>
         <p className="text-slate-400 max-w-md">
-          There are currently no active broadcasts for this teacher. Please check back later.
+          There are currently no active broadcasts. Please check back later.
         </p>
         <div className="mt-12 h-1 w-64 bg-slate-900 rounded-full overflow-hidden">
           <motion.div 
@@ -76,6 +117,66 @@ export default function LiveBroadcast() {
             animate={{ x: [-256, 256] }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           />
+        </div>
+      </div>
+    );
+  }
+
+  // Paywall state — 10 free views exhausted
+  if (showPaywall && !user) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8 text-center relative overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-[150px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[150px]" />
+        </div>
+
+        <div className="relative z-10 max-w-md mx-auto">
+          <div className="bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-10 space-y-6">
+            <div className="h-20 w-20 mx-auto bg-gradient-to-br from-teal-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg shadow-teal-500/20">
+              <Lock className="h-10 w-10 text-white" />
+            </div>
+            
+            <div>
+              <h1 className="text-2xl font-bold text-white mb-2">Free Previews Used Up</h1>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                You've watched <span className="text-white font-semibold">{viewAccess.viewsUsed}</span> of <span className="text-white font-semibold">{viewAccess.limit}</span> free broadcast previews. 
+                Sign in to continue watching unlimited content.
+              </p>
+            </div>
+
+            {/* Progress bar */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Views used</span>
+                <span className="text-teal-400 font-semibold">{viewAccess.viewsUsed}/{viewAccess.limit}</span>
+              </div>
+              <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full transition-all"
+                  style={{ width: `${Math.min((viewAccess.viewsUsed / viewAccess.limit) * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Link to="/auth" className="block">
+                <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-6 rounded-xl gap-2">
+                  <Eye className="h-4 w-4" /> Sign in to Watch Unlimited
+                </Button>
+              </Link>
+              <Link to="/auth" className="block">
+                <Button variant="outline" className="w-full border-white/10 text-white hover:bg-white/5 py-6 rounded-xl">
+                  Create Free Account
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <p className="text-slate-600 text-xs mt-6">
+            StreamPro tracks views securely. Contact support for any access issues.
+          </p>
         </div>
       </div>
     );
@@ -100,6 +201,15 @@ export default function LiveBroadcast() {
         </div>
         
         <div className="flex items-center gap-6">
+          {/* Free views counter (only for non-logged-in users) */}
+          {!user && (
+            <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+              <Eye className="h-3 w-3 text-teal-400" />
+              <span className="text-xs font-semibold text-teal-400">
+                {viewAccess.limit - viewAccess.viewsUsed} free views left
+              </span>
+            </div>
+          )}
           {content.length > 1 && (
             <div className="flex items-center gap-3">
               <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Next in</span>
@@ -197,7 +307,7 @@ export default function LiveBroadcast() {
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Powered by</span>
           <div className="flex items-center gap-1.5 ml-1">
-             <Play className="h-3.5 w-3.5 text-teal-500 fill-teal-500" />
+             <Radio className="h-3.5 w-3.5 text-teal-500" />
              <span className="text-sm font-black tracking-tighter">StreamPro</span>
           </div>
         </div>
