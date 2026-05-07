@@ -22,9 +22,6 @@ export const authService = {
       },
     });
     if (error) throw error;
-    
-    // In a real app, we might have a trigger to create a profile, 
-    // but we can also do it manually here if needed.
     return data;
   },
 
@@ -52,5 +49,17 @@ export const authService = {
   async getSession() {
     const { data: { session } } = await supabase.auth.getSession();
     return session;
-  }
+  },
+
+  async updateProfile(userId, updates) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
 };

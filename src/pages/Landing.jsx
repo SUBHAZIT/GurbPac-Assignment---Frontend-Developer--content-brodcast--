@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
 import { 
   Play, 
   Search, 
@@ -35,20 +37,129 @@ import {
   BookOpen,
   Boxes,
   Workflow,
-  Bot
+  LogOut,
+  User,
+  Quote
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+const MarqueeRow = ({ items, direction = 'left', speed = 60 }) => {
+  const animationStyle = {
+    '--marquee-duration': `${speed}s`,
+  };
+
+  return (
+    <div className="flex overflow-hidden py-3" style={animationStyle}>
+      <div 
+        className={`flex gap-5 min-w-max px-2.5 ${
+          direction === 'left' ? 'animate-marquee-left' : 'animate-marquee-right'
+        }`}
+        style={{ animationDuration: `${speed}s` }}
+      >
+        {[...items, ...items].map((item, i) => (
+          <div key={i} className="w-[420px] flex-shrink-0">
+            <div className="bg-white p-7 rounded-[2rem] border border-slate-100 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between gap-6 h-full whitespace-normal hover:shadow-[0_8px_40px_-8px_rgba(0,0,0,0.1)] hover:border-teal-100 transition-all duration-500">
+               <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                     <div className="h-11 w-11 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 p-[2px] overflow-hidden">
+                        <img src={`https://i.pravatar.cc/150?u=${item.name}`} alt={item.name} className="w-full h-full object-cover rounded-full" />
+                     </div>
+                     <div>
+                        <p className="text-sm font-black text-slate-900">{item.name}</p>
+                        <p className="text-[10px] font-bold text-slate-400">{item.role}</p>
+                     </div>
+                  </div>
+                  <div className="h-9 w-9 flex-shrink-0 opacity-80">
+                      <DotLottieReact
+                        src="https://lottie.host/19e88a63-230c-4b19-bcfe-c463ce75e49c/CrjSHj7WFa.lottie"
+                        loop
+                        autoplay
+                        style={{ width: '100%', height: '100%' }}
+                      />
+                  </div>
+               </div>
+               <p className="text-base font-semibold text-slate-600 leading-relaxed">"{item.quote}"</p>
+               <div className="flex items-center gap-3">
+                  <div className="h-1 w-6 rounded-full bg-teal-400" />
+                  <span className="text-[10px] font-black tracking-widest text-slate-300">{item.institution}</span>
+               </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const dropdownRef = useRef(null);
+  const profileRef = useRef(null);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setActiveDropdown(null);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const scrollToSection = (id) => {
+    setActiveDropdown(null);
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const navDropdowns = {
+    PRODUCTS: [
+      { label: 'STREAMPRO CREATOR', desc: 'CREATE ULTRA-LIGHTWEIGHT BROADCASTS', action: () => scrollToSection('tools-section') },
+      { label: 'STREAMPRO FOR TEAMS', desc: 'COLLABORATE WITH YOUR INSTITUTION', action: () => scrollToSection('tools-section') },
+      { label: 'DIGITAL ASSETS', desc: 'MANAGE ALL YOUR BROADCAST MEDIA', action: () => scrollToSection('assets-section') },
+    ],
+    INTEGRATIONS: [
+      { label: 'GOOGLE CLASSROOM', desc: 'SEAMLESS LMS INTEGRATION', action: () => scrollToSection('integrations-section') },
+      { label: 'CANVAS', desc: 'CONNECT YOUR EXISTING COURSES', action: () => scrollToSection('integrations-section') },
+      { label: 'MICROSOFT TEAMS', desc: 'BROADCAST DIRECTLY IN TEAMS', action: () => scrollToSection('integrations-section') },
+      { label: 'VIEW ALL', desc: 'EXPLORE 20+ INTEGRATIONS', action: () => scrollToSection('integrations-section') },
+    ],
+    TOOLS: [
+      { label: 'AI MODERATION', desc: 'AUTOMATED CONTENT FILTERING', action: () => scrollToSection('enterprise-section') },
+      { label: 'ANALYTICS', desc: 'REAL-TIME ENGAGEMENT DATA', action: () => scrollToSection('enterprise-section') },
+      { label: 'API ACCESS', desc: 'BUILD CUSTOM WORKFLOWS', action: () => scrollToSection('enterprise-section') },
+    ],
+    CUSTOMERS: [
+      { label: 'TESTIMONIALS', desc: 'HEAR FROM OUR USERS', action: () => scrollToSection('testimonials-section') },
+      { label: 'CASE STUDIES', desc: 'SEE HOW INSTITUTIONS USE STREAMPRO', action: () => scrollToSection('testimonials-section') },
+    ],
+    LEARN: [
+      { label: 'DOCUMENTATION', desc: 'GUIDES AND API REFERENCE', action: () => {} },
+      { label: 'BLOG', desc: 'LATEST NEWS AND UPDATES', action: () => {} },
+      { label: 'WEBINARS', desc: 'LIVE TRAINING SESSIONS', action: () => {} },
+    ],
+    PRICING: [
+      { label: 'FREE TIER', desc: 'GET STARTED AT NO COST', action: () => {} },
+      { label: 'PRO PLAN', desc: 'FOR GROWING INSTITUTIONS', action: () => {} },
+      { label: 'ENTERPRISE', desc: 'CUSTOM SOLUTIONS AT SCALE', action: () => {} },
+    ],
+  };
 
   const heroFeatureCards = [
     { title: 'TINY', desc: 'ULTRA-COMPRESSED 4K STREAMS', icon: <Zap className="h-5 w-5 text-amber-500" />, bgColor: 'bg-amber-50' },
@@ -66,6 +177,22 @@ export default function LandingPage() {
     { Icon: Video, label: 'ZOOM', pos: 'bottom-1/3 left-10' },
   ];
 
+  const marqueeRow1 = [
+    { name: 'PROF. ELENA ROSSI', role: 'HEAD OF DIGITAL LEARNING', quote: 'STREAMPRO HAS REVOLUTIONIZED HOW WE DELIVER GLOBAL SEMINARS. THE QUALITY IS UNMATCHED.', institution: 'UNIVERSITY OF BOLOGNA' },
+    { name: 'DR. MARCUS CHEN', role: 'DIRECTOR OF STEM', quote: 'THE LATENCY IS ALMOST ZERO. STUDENTS ENGAGE AS IF THEY ARE IN THE ROOM.', institution: 'SINGAPORE POLYTECHNIC' },
+    { name: 'AMARA OKAFOR', role: 'VP OF ENGINEERING', quote: 'WE MIGRATED 200+ COURSES IN A WEEKEND. THE API IS BEAUTIFULLY DESIGNED.', institution: 'LAGOS BUSINESS SCHOOL' },
+    { name: 'DR. HANNAH BERG', role: 'DEAN OF SCIENCES', quote: 'OUR STUDENT ENGAGEMENT SCORES JUMPED 40% AFTER SWITCHING TO STREAMPRO.', institution: 'ETH ZÜRICH' },
+    { name: 'TOMOKO YAMAZAKI', role: 'EDTECH LEAD', quote: 'THE AI MODERATION ALONE SAVES OUR TEAM 15 HOURS PER WEEK. GAME CHANGER.', institution: 'WASEDA UNIVERSITY' },
+  ];
+
+  const marqueeRow2 = [
+    { name: 'SARAH JENKINS', role: 'PRINCIPAL', quote: 'MODERATION TOOLS GIVE US THE CONFIDENCE TO BROADCAST TO THOUSANDS SAFELY.', institution: 'OAKWOOD ACADEMY' },
+    { name: 'JAMES WILSON', role: 'IT COORDINATOR', quote: 'THE INTEGRATION WITH CANVAS WAS SEAMLESS. IT JUST WORKS PERFECTLY.', institution: 'UCL' },
+    { name: 'DR. PRIYA SHARMA', role: 'CHIEF ACADEMIC OFFICER', quote: 'STREAMPRO IS THE BACKBONE OF OUR HYBRID LEARNING STRATEGY. TRULY INDISPENSABLE.', institution: 'IIT DELHI' },
+    { name: 'LUCAS ANDERSEN', role: 'PRODUCT MANAGER', quote: 'WE EVALUATED EVERY PLATFORM. STREAMPRO WON ON PERFORMANCE, SECURITY, AND UX.', institution: 'COURSERA' },
+    { name: 'MARIE DUPONT', role: 'DIRECTOR OF INNOVATION', quote: 'THE REAL-TIME ANALYTICS DASHBOARD CHANGED HOW WE UNDERSTAND STUDENT BEHAVIOR.', institution: 'SCIENCES PO' },
+  ];
+
   return (
     <div className="min-h-screen bg-white font-sans selection:bg-teal-100 selection:text-teal-900 overflow-x-hidden uppercase">
       {/* Premium Navbar */}
@@ -79,41 +206,119 @@ export default function LandingPage() {
               <span className="text-xl font-black tracking-tight text-slate-900">STREAMPRO</span>
             </Link>
 
-            <div className="hidden lg:flex items-center gap-6">
-              {['PRODUCTS', 'INTEGRATIONS', 'TOOLS', 'CUSTOMERS', 'LEARN', 'PRICING'].map((item) => (
-                <button key={item} className="flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">
-                  {item} <ChevronDown className="h-3 w-3 opacity-50" />
-                </button>
+            <div className="hidden lg:flex items-center gap-1" ref={dropdownRef}>
+              {Object.keys(navDropdowns).map((item) => (
+                <div key={item} className="relative">
+                  <button 
+                    onClick={() => setActiveDropdown(activeDropdown === item ? null : item)}
+                    className={`flex items-center gap-1 text-sm font-bold px-3 py-2 rounded-lg transition-colors ${
+                      activeDropdown === item ? 'text-teal-600 bg-teal-50' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    {item} <ChevronDown className={`h-3 w-3 transition-transform ${activeDropdown === item ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  <AnimatePresence>
+                    {activeDropdown === item && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 8 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full left-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-100 p-2 z-50"
+                      >
+                        {navDropdowns[item].map((subItem, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => { subItem.action(); setActiveDropdown(null); }}
+                            className="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 transition-colors group flex flex-col gap-0.5"
+                          >
+                            <span className="text-xs font-black text-slate-900 group-hover:text-teal-600 transition-colors">{subItem.label}</span>
+                            <span className="text-[10px] font-bold text-slate-400">{subItem.desc}</span>
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               ))}
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center relative group">
-              <Search className="absolute left-3 h-4 w-4 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
-              <input 
-                type="text" 
-                placeholder="SEARCH BROADCASTS..." 
-                className="pl-10 pr-4 py-2 bg-slate-50 border-none rounded-lg text-xs font-bold w-48 focus:w-64 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
-              />
-              <div className="absolute right-3 px-1.5 py-0.5 bg-slate-200 rounded text-[10px] font-black text-slate-500">⌘ K</div>
-            </div>
-            
-            <button className="hidden sm:flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg transition-colors">
-              <Globe2 className="h-4 w-4 text-slate-400" />
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-tighter">EN</span>
-              <ChevronDown className="h-3 w-3 text-slate-400" />
+          <div className="flex items-center gap-3">
+            {user ? (
+              <>
+                <Link to={user.profile?.role === 'principal' ? '/principal/dashboard' : '/teacher/dashboard'}>
+                  <Button className="bg-teal-500 hover:bg-teal-600 text-white font-black rounded-lg px-6 py-5 shadow-lg shadow-teal-500/20 transition-all hover:scale-[1.02] active:scale-95">
+                    MY DASHBOARD
+                  </Button>
+                </Link>
+
+                {/* Profile Dropdown */}
+                <div className="relative" ref={profileRef}>
+                  <button 
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    className="h-10 w-10 rounded-full bg-teal-500 border-2 border-teal-400 shadow-sm overflow-hidden flex items-center justify-center text-white font-black text-sm hover:scale-105 transition-transform"
+                  >
+                    {user.profile?.full_name?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
+                  </button>
+
+                  <AnimatePresence>
+                    {showProfileMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-100 p-2 z-50"
+                      >
+                        <div className="px-4 py-3 border-b border-slate-100 mb-1">
+                          <p className="text-xs font-black text-slate-900 truncate">{user.profile?.full_name || 'USER'}</p>
+                          <p className="text-[10px] font-bold text-slate-400 truncate">{user.email}</p>
+                          <span className="inline-block mt-1 px-2 py-0.5 bg-teal-50 text-teal-600 text-[9px] font-black rounded-md tracking-wider">
+                            {user.profile?.role?.toUpperCase() || 'MEMBER'}
+                          </span>
+                        </div>
+                        <Link
+                          to={user.profile?.role === 'principal' ? '/principal/dashboard' : '/teacher/dashboard'}
+                          onClick={() => setShowProfileMenu(false)}
+                          className="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-3 text-xs font-black text-slate-700"
+                        >
+                          <User className="h-4 w-4 text-slate-400" /> MY PROFILE
+                        </Link>
+                        <button
+                          onClick={() => { setShowProfileMenu(false); logout(); }}
+                          className="w-full text-left px-4 py-3 rounded-xl hover:bg-rose-50 transition-colors flex items-center gap-3 text-xs font-black text-rose-500"
+                        >
+                          <LogOut className="h-4 w-4" /> SIGN OUT
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <button className="hidden sm:block text-sm font-black text-slate-600 hover:text-slate-900 px-4 py-2 transition-colors">
+                    SIGN IN
+                  </button>
+                </Link>
+                <Link to="/auth">
+                  <Button className="bg-teal-500 hover:bg-teal-600 text-white font-black rounded-lg px-6 py-5 shadow-lg shadow-teal-500/20 transition-all hover:scale-[1.02] active:scale-95">
+                    GET STARTED
+                  </Button>
+                </Link>
+              </>
+            )}
+
+            {/* Mobile Menu Toggle */}
+            <button 
+              className="lg:hidden h-10 w-10 rounded-lg bg-slate-50 flex items-center justify-center hover:bg-slate-100 transition-colors"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu className="h-5 w-5 text-slate-600" />
             </button>
-
-            <Link to="/auth">
-              <Button className="bg-teal-500 hover:bg-teal-600 text-white font-black rounded-lg px-6 py-5 shadow-lg shadow-teal-500/20 transition-all hover:scale-[1.02] active:scale-95">
-                MY DASHBOARD
-              </Button>
-            </Link>
-
-            <div className="h-10 w-10 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden flex items-center justify-center">
-               <Users className="h-5 w-5 text-slate-400" />
-            </div>
           </div>
         </div>
       </nav>
@@ -172,11 +377,12 @@ export default function LandingPage() {
             className="relative"
           >
              <div className="absolute inset-0 bg-teal-500/10 blur-[120px] rounded-full -z-10" />
-             <div className="relative p-3 bg-white rounded-[3rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] border border-slate-100">
-                <img 
-                  src="/Users/apple/.gemini/antigravity/brain/2bd3add8-fa13-4e8f-91be-b4d0de947299/streampro_live_preview_1778175886815.png" 
-                  alt="Live Previews" 
-                  className="w-full h-auto rounded-[2.5rem]"
+             <div className="relative">
+                <DotLottieReact
+                  src="https://lottie.host/382b89c4-c988-452a-8a19-f99eb8b27484/QM0zbg6zOt.lottie"
+                  loop
+                  autoplay
+                  style={{ width: '100%', height: 'auto' }}
                 />
              </div>
           </motion.div>
@@ -184,7 +390,7 @@ export default function LandingPage() {
       </section>
 
       {/* Integrations Section */}
-      <section className="py-32 px-6 relative overflow-hidden">
+      <section id="integrations-section" className="py-32 px-6 relative overflow-hidden">
         <div className="max-w-[1000px] mx-auto text-center space-y-12 relative z-10">
            <h2 className="text-6xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none uppercase">
              IMPLEMENT YOUR BROADCASTS <br/> IN JUST A FEW CLICKS
@@ -214,7 +420,7 @@ export default function LandingPage() {
       </section>
 
       {/* Enterprise Section (Bento Grid) */}
-      <section className="py-32 px-6 bg-slate-50/50">
+      <section id="enterprise-section" className="py-32 px-6 bg-slate-50/50">
         <div className="max-w-[1400px] mx-auto text-center space-y-10">
           <h2 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight leading-none uppercase">
             A MODERN BROADCASTING WORKFLOW <br/> BUILT FOR TEAMS AND ENTERPRISES
@@ -256,8 +462,23 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Infinite Marquee Section */}
+      <section id="testimonials-section" className="py-28 bg-gradient-to-b from-slate-50/50 to-white overflow-hidden">
+         <div className="max-w-[1400px] mx-auto px-6 mb-20 text-center space-y-5">
+            <p className="text-sm font-black text-teal-500 tracking-widest">TESTIMONIALS</p>
+            <h2 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter uppercase leading-none">
+              LOVED BY EDUCATORS. <br/> TRUSTED BY INSTITUTIONS.
+            </h2>
+            <p className="text-lg text-slate-400 font-bold max-w-xl mx-auto">HEAR FROM THE TEAMS AND EDUCATORS WHO RELY ON STREAMPRO EVERY DAY.</p>
+         </div>
+         <div className="space-y-5">
+            <MarqueeRow items={marqueeRow1} direction="left" speed={55} />
+            <MarqueeRow items={marqueeRow2} direction="right" speed={65} />
+         </div>
+      </section>
+
       {/* Asset Management Section */}
-      <section className="py-32 px-6 bg-white">
+      <section id="assets-section" className="py-32 px-6 bg-white">
         <div className="max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-20 items-center">
            <div className="space-y-12">
               <h2 className="text-7xl font-black text-slate-900 tracking-tighter uppercase leading-[0.9]">DIGITAL ASSET <br/> MANAGEMENT</h2>
@@ -304,7 +525,7 @@ export default function LandingPage() {
       </section>
 
       {/* Dark Tool Section */}
-      <section className="py-40 px-6 bg-slate-950 text-white overflow-hidden relative">
+      <section id="tools-section" className="py-40 px-6 bg-black text-white overflow-hidden relative">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_-20%,#0f766e,transparent)] opacity-20" />
         <div className="max-w-[1400px] mx-auto grid lg:grid-cols-5 gap-20 items-center relative z-10">
           <div className="lg:col-span-3 space-y-12">
@@ -341,12 +562,13 @@ export default function LandingPage() {
             <motion.div 
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
-              className="relative p-4 bg-slate-900 rounded-[3rem] border border-slate-800 shadow-2xl"
+              className="relative scale-125 origin-center"
             >
-               <img 
-                 src="/Users/apple/.gemini/antigravity/brain/2bd3add8-fa13-4e8f-91be-b4d0de947299/streampro_dashboard_mockup_1778175845330.png" 
-                 alt="Dashboard Mockup" 
-                 className="w-full h-auto rounded-[2rem]"
+               <DotLottieReact
+                 src="https://lottie.host/14e2e7b3-b8b8-4ad9-9f21-ddd8e9532bed/14NyUy0w20.lottie"
+                 loop
+                 autoplay
+                 style={{ width: '100%', height: 'auto' }}
                />
             </motion.div>
           </div>
@@ -379,7 +601,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-24 px-6 bg-white border-t border-slate-100">
+      <footer className="py-24 px-6 bg-black border-t border-white/10">
         <div className="max-w-[1400px] mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-16">
             <div className="lg:col-span-2 space-y-10">
@@ -387,15 +609,15 @@ export default function LandingPage() {
                 <div className="h-10 w-10 bg-teal-500 rounded-xl flex items-center justify-center">
                   <Radio className="h-6 w-6 text-white" />
                 </div>
-                <span className="text-2xl font-black tracking-tighter text-slate-900 uppercase">STREAMPRO</span>
+                <span className="text-2xl font-black tracking-tighter text-white uppercase">STREAMPRO</span>
               </Link>
               <p className="text-slate-400 font-bold max-w-sm text-lg leading-relaxed uppercase">
                 THE HIGH-PERFORMANCE INFRASTRUCTURE FOR INSTITUTIONAL BROADCASTING. EMPOWERING EDUCATORS, MODERATED BY LEADERS.
               </p>
               <div className="flex gap-4">
                  {[Twitter, Linkedin, Youtube].map((Icon, i) => (
-                   <div key={i} className="h-12 w-12 bg-slate-50 rounded-xl flex items-center justify-center hover:bg-teal-50 transition-colors cursor-pointer group">
-                      <Icon className="h-6 w-6 text-slate-400 group-hover:text-teal-600" />
+                   <div key={i} className="h-12 w-12 bg-white/10 rounded-xl flex items-center justify-center hover:bg-teal-500/20 transition-colors cursor-pointer group">
+                      <Icon className="h-6 w-6 text-slate-400 group-hover:text-teal-400" />
                    </div>
                  ))}
               </div>
@@ -403,17 +625,17 @@ export default function LandingPage() {
 
             {['PRODUCT', 'RESOURCES', 'COMPANY'].map((title) => (
               <div key={title} className="space-y-8">
-                <h4 className="font-black text-slate-900 text-sm tracking-widest uppercase">{title}</h4>
+                <h4 className="font-black text-white text-sm tracking-widest uppercase">{title}</h4>
                 <ul className="space-y-4 text-slate-400 font-bold text-sm">
                   {['FEATURES', 'SECURITY', 'API', 'GUIDES', 'CAREERS', 'LEGAL'].slice(0, 4).map(item => (
-                    <li key={item} className="hover:text-teal-600 cursor-pointer transition-colors uppercase">{item}</li>
+                    <li key={item} className="hover:text-teal-400 cursor-pointer transition-colors uppercase">{item}</li>
                   ))}
                 </ul>
               </div>
             ))}
           </div>
-          <div className="mt-24 pt-12 border-t border-slate-100 flex justify-between items-center">
-             <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase uppercase">© 2026 STREAMPRO INFRASTRUCTURE. ALL RIGHTS RESERVED.</p>
+          <div className="mt-24 pt-12 border-t border-white/10 flex justify-between items-center">
+             <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase">© 2026 STREAMPRO INFRASTRUCTURE. ALL RIGHTS RESERVED.</p>
           </div>
         </div>
       </footer>
@@ -425,22 +647,58 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-[200] bg-white p-8 md:hidden"
+            className="fixed inset-0 z-[200] bg-white p-8 overflow-y-auto lg:hidden"
           >
              <div className="flex justify-between items-center mb-12">
                 <span className="text-2xl font-black text-slate-900">STREAMPRO</span>
-                <button onClick={() => setIsMobileMenuOpen(false)}><X /></button>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="h-10 w-10 rounded-lg bg-slate-50 flex items-center justify-center">
+                  <X className="h-5 w-5" />
+                </button>
              </div>
-             <div className="flex flex-col gap-8">
-                {['PRODUCTS', 'INTEGRATIONS', 'TOOLS', 'PRICING'].map((item) => (
-                  <button key={item} className="text-3xl font-black text-slate-900 text-left">
-                    {item}
-                  </button>
+             <div className="flex flex-col gap-6">
+                {Object.entries(navDropdowns).map(([title, items]) => (
+                  <div key={title} className="space-y-3">
+                    <p className="text-lg font-black text-slate-900">{title}</p>
+                    <div className="pl-4 space-y-2">
+                      {items.map((sub, i) => (
+                        <button 
+                          key={i} 
+                          onClick={() => { sub.action(); setIsMobileMenuOpen(false); }}
+                          className="block text-sm font-bold text-slate-500 hover:text-teal-600 transition-colors"
+                        >
+                          {sub.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ))}
                 <hr className="border-slate-100" />
-                <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>
-                   <Button className="w-full bg-teal-500 py-8 rounded-2xl text-xl font-black shadow-xl shadow-teal-500/20">GET STARTED</Button>
-                </Link>
+                {user ? (
+                  <>
+                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
+                      <div className="h-10 w-10 rounded-full bg-teal-500 flex items-center justify-center text-white font-black text-sm">
+                        {user.profile?.full_name?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-slate-900">{user.profile?.full_name || 'USER'}</p>
+                        <p className="text-[10px] font-bold text-slate-400">{user.email}</p>
+                      </div>
+                    </div>
+                    <Link to={user.profile?.role === 'principal' ? '/principal/dashboard' : '/teacher/dashboard'} onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button className="w-full bg-teal-500 py-8 rounded-2xl text-xl font-black shadow-xl shadow-teal-500/20">MY DASHBOARD</Button>
+                    </Link>
+                    <button 
+                      onClick={() => { setIsMobileMenuOpen(false); logout(); }}
+                      className="w-full text-center text-sm font-black text-rose-500 py-3"
+                    >
+                      SIGN OUT
+                    </button>
+                  </>
+                ) : (
+                  <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button className="w-full bg-teal-500 py-8 rounded-2xl text-xl font-black shadow-xl shadow-teal-500/20">GET STARTED</Button>
+                  </Link>
+                )}
              </div>
           </motion.div>
         )}

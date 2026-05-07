@@ -85,6 +85,15 @@ export const contentService = {
     return data[0];
   },
 
+  async deleteContent(id) {
+    const { error } = await supabase
+      .from('content')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  },
+
   async getLiveContent(teacherId) {
     const now = new Date().toISOString();
     let query = supabase
