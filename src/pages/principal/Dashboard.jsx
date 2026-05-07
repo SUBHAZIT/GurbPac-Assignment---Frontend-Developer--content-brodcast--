@@ -35,14 +35,14 @@ export default function PrincipalDashboard() {
     <DashboardLayout allowedRole="principal">
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {/* Greeting Banner */}
-        <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-8 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl md:rounded-3xl p-5 md:p-8 text-white relative overflow-hidden">
           <div className="absolute -right-16 -top-16 w-56 h-56 bg-teal-500/10 rounded-full" />
           <div className="absolute right-24 bottom-0 w-36 h-36 bg-teal-500/5 rounded-full" />
           <div className="absolute left-0 top-0 w-full h-1 bg-gradient-to-r from-teal-400 via-emerald-400 to-cyan-400" />
           <div className="relative z-10">
-            <p className="text-slate-400 text-sm font-semibold mb-1">{greeting} 👋</p>
-            <h1 className="text-3xl font-bold tracking-tight">Hello, {firstName}!</h1>
-            <p className="text-slate-400 mt-2 max-w-md">
+            <p className="text-slate-400 text-xs md:text-sm font-semibold mb-1">{greeting} 👋</p>
+            <h1 className="text-xl md:text-3xl font-bold tracking-tight">Hello, {firstName}!</h1>
+            <p className="text-slate-400 mt-2 max-w-md text-sm hidden sm:block">
               Welcome to the admin portal. Review pending content, manage approvals, and monitor broadcasts.
             </p>
           </div>

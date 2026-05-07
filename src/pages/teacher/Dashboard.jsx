@@ -35,15 +35,20 @@ export default function TeacherDashboard() {
     <DashboardLayout allowedRole="teacher">
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {/* Greeting Banner */}
-        <div className="bg-gradient-to-r from-teal-500 to-emerald-500 rounded-3xl p-8 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-r from-teal-500 to-emerald-500 rounded-2xl md:rounded-3xl p-5 md:p-8 text-white relative overflow-hidden">
           <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full" />
           <div className="absolute right-20 bottom-0 w-32 h-32 bg-white/5 rounded-full" />
           <div className="relative z-10">
-            <p className="text-teal-100 text-sm font-semibold mb-1">{greeting} 👋</p>
-            <h1 className="text-3xl font-bold tracking-tight">Hello, {firstName}!</h1>
-            <p className="text-teal-100 mt-2 max-w-md">
+            <p className="text-teal-100 text-xs md:text-sm font-semibold mb-1">{greeting} 👋</p>
+            <h1 className="text-xl md:text-3xl font-bold tracking-tight">Hello, {firstName}!</h1>
+            <p className="text-teal-100 mt-2 max-w-md text-sm hidden sm:block">
               Welcome to your teaching portal. Upload content, track approvals, and manage your broadcasts.
             </p>
+            <Link to="/teacher/upload" className="mt-3 inline-flex md:hidden">
+              <Button size="sm" className="bg-white/20 hover:bg-white/30 text-white border border-white/20 gap-1.5 rounded-lg text-xs">
+                <Plus className="h-3.5 w-3.5" /> Upload New
+              </Button>
+            </Link>
           </div>
           <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden md:flex gap-4">
             <Link to="/teacher/upload">

@@ -9,13 +9,16 @@ import {
   LogOut,
   Radio,
   Settings,
+  History,
+  Heart,
   UserPlus,
-  Play
+  Play,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
-export function Sidebar() {
+export function Sidebar({ onClose }) {
   const location = useLocation();
   const pathname = location.pathname;
   const { user, logout } = useAuth();
@@ -35,20 +38,35 @@ export function Sidebar() {
   ];
 
   const viewerLinks = [
+    { name: 'My Dashboard', href: '/viewer/dashboard', icon: LayoutDashboard },
     { name: 'Live Broadcast', href: '/live/all', icon: Play },
+    { name: 'Watch History', href: '/viewer/dashboard', icon: History },
   ];
 
   const links = role === 'principal' ? principalLinks : role === 'teacher' ? teacherLinks : viewerLinks;
 
+  const handleNavClick = () => {
+    if (onClose) onClose();
+  };
+
   return (
     <div className="flex h-full w-64 flex-col bg-white border-r border-slate-200">
-      <div className="flex h-16 items-center px-6 border-b border-slate-200">
-        <Link to="/" className="flex items-center gap-2">
+      <div className="flex h-16 items-center justify-between px-6 border-b border-slate-200">
+        <Link to="/" className="flex items-center gap-2" onClick={handleNavClick}>
           <div className="bg-teal-500 p-1.5 rounded-lg">
             <Radio className="h-5 w-5 text-white" />
           </div>
           <span className="text-xl font-bold text-slate-900 tracking-tight">StreamPro</span>
         </Link>
+        {/* Close button - mobile only */}
+        {onClose && (
+          <button 
+            onClick={onClose}
+            className="md:hidden h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200"
+          >
+            <X className="h-4 w-4 text-slate-600" />
+          </button>
+        )}
       </div>
       
       <div className="flex-1 overflow-y-auto py-6 px-4">
@@ -61,6 +79,7 @@ export function Sidebar() {
               <Link
                 key={link.name}
                 to={link.href}
+                onClick={handleNavClick}
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors',
                   isActive 
@@ -79,6 +98,7 @@ export function Sidebar() {
           <p className="px-3 mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Account</p>
           <Link
             to="/profile"
+            onClick={handleNavClick}
             className={cn(
               'flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors',
               pathname === '/profile' 
@@ -105,7 +125,7 @@ export function Sidebar() {
         <Button 
           variant="ghost" 
           className="w-full justify-start gap-3 text-slate-600 hover:text-rose-600 hover:bg-rose-50"
-          onClick={logout}
+          onClick={() => { if (onClose) onClose(); logout(); }}
         >
           <LogOut className="h-5 w-5" />
           Sign Out

@@ -9,13 +9,17 @@ import { useAuth } from '@/context/AuthContext';
 import { contentService } from '@/services/content.service';
 import { 
   Upload, 
-  Image as ImageIcon, 
   X, 
   Loader2, 
   Calendar,
   Clock,
   Type,
-  BookOpen
+  BookOpen,
+  FileText,
+  Film,
+  Image as ImageIcon,
+  Music,
+  File
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,10 +34,58 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
+const FILE_TYPE_MAP = {
+  'image/jpeg': 'image',
+  'image/jpg': 'image',
+  'image/png': 'image',
+  'image/gif': 'image',
+  'image/webp': 'image',
+  'image/svg+xml': 'image',
+  'video/mp4': 'video',
+  'video/webm': 'video',
+  'video/ogg': 'video',
+  'video/quicktime': 'video',
+  'application/pdf': 'pdf',
+  'audio/mpeg': 'audio',
+  'audio/wav': 'audio',
+  'audio/ogg': 'audio',
+  'audio/mp4': 'audio',
+};
+
+function getFileCategory(mimeType) {
+  return FILE_TYPE_MAP[mimeType] || 'other';
+}
+
+function getFileIcon(category) {
+  switch (category) {
+    case 'image': return <ImageIcon className="h-6 w-6" />;
+    case 'video': return <Film className="h-6 w-6" />;
+    case 'pdf': return <FileText className="h-6 w-6" />;
+    case 'audio': return <Music className="h-6 w-6" />;
+    default: return <File className="h-6 w-6" />;
+  }
+}
+
+function getFileBadgeColor(category) {
+  switch (category) {
+    case 'image': return 'bg-blue-50 text-blue-600 border-blue-100';
+    case 'video': return 'bg-purple-50 text-purple-600 border-purple-100';
+    case 'pdf': return 'bg-rose-50 text-rose-600 border-rose-100';
+    case 'audio': return 'bg-amber-50 text-amber-600 border-amber-100';
+    default: return 'bg-slate-50 text-slate-600 border-slate-100';
+  }
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
 
 const uploadSchema = z.object({
   title: z.string().min(3, 'Title is too short'),
@@ -55,6 +107,7 @@ export default function UploadForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [preview, setPreview] = useState(null);
   const [file, setFile] = useState(null);
+  const [fileCategory, setFileCategory] = useState(null);
 
   const form = useForm({
     resolver: zodResolver(uploadSchema),
@@ -72,22 +125,31 @@ export default function UploadForm() {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
-    if (!ACCEPTED_IMAGE_TYPES.includes(selectedFile.type)) {
-      toast.error('Invalid file type. Only JPG, PNG, GIF allowed.');
-      return;
-    }
-
     if (selectedFile.size > MAX_FILE_SIZE) {
-      toast.error('File size too large. Max 10MB allowed.');
+      toast.error('File size too large. Max 50MB allowed.');
       return;
     }
 
+    const category = getFileCategory(selectedFile.type);
     setFile(selectedFile);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result);
-    };
-    reader.readAsDataURL(selectedFile);
+    setFileCategory(category);
+
+    // Generate preview for images and videos
+    if (category === 'image') {
+      const reader = new FileReader();
+      reader.onloadend = () => setPreview(reader.result);
+      reader.readAsDataURL(selectedFile);
+    } else if (category === 'video') {
+      setPreview(URL.createObjectURL(selectedFile));
+    } else {
+      setPreview(null);
+    }
+  };
+
+  const clearFile = () => {
+    setFile(null);
+    setPreview(null);
+    setFileCategory(null);
   };
 
   async function onSubmit(values) {
@@ -98,7 +160,6 @@ export default function UploadForm() {
 
     setIsLoading(true);
     try {
-      // Map form fields to database column names
       await contentService.uploadContent({
         title: values.title,
         subject: values.subject,
@@ -106,7 +167,7 @@ export default function UploadForm() {
         start_time: values.startTime,
         end_time: values.endTime,
         rotation_duration: values.rotationDuration,
-        file_type: file.type.startsWith('image/') ? 'image' : 'document',
+        file_type: fileCategory || 'other',
         teacher_id: user.id,
       }, file);
       
@@ -123,7 +184,7 @@ export default function UploadForm() {
     <div className="max-w-4xl mx-auto py-8 px-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Upload Content</h1>
-        <p className="text-slate-500 mt-1">Fill in the details to schedule your broadcast.</p>
+        <p className="text-slate-500 mt-1">Upload any media — images, videos, PDFs, audio — to schedule your broadcast.</p>
       </div>
 
       <Form {...form}>
@@ -247,18 +308,42 @@ export default function UploadForm() {
               <Card className="border-none shadow-sm overflow-hidden sticky top-8">
                 <CardHeader className="border-b border-slate-100 bg-white">
                   <CardTitle className="text-lg">Media Upload</CardTitle>
+                  <CardDescription>Images, Videos, PDFs, Audio — up to 50MB</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  {preview ? (
-                    <div className="relative rounded-xl overflow-hidden border border-slate-200 aspect-video group">
-                      <img src={preview} alt="Preview" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Button 
-                          variant="destructive" 
-                          size="icon" 
-                          onClick={() => {setPreview(null); setFile(null);}}
-                          className="rounded-full"
-                        >
+                  {file ? (
+                    <div className="space-y-3">
+                      {/* Preview area */}
+                      {preview && fileCategory === 'image' && (
+                        <div className="relative rounded-xl overflow-hidden border border-slate-200 aspect-video group">
+                          <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Button variant="destructive" size="icon" onClick={clearFile} className="rounded-full">
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {preview && fileCategory === 'video' && (
+                        <div className="relative rounded-xl overflow-hidden border border-slate-200 aspect-video">
+                          <video src={preview} controls className="w-full h-full object-cover" />
+                        </div>
+                      )}
+
+                      {/* File info card */}
+                      <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div className={`p-2 rounded-lg border ${getFileBadgeColor(fileCategory)}`}>
+                          {getFileIcon(fileCategory)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900 truncate">{file.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <Badge variant="outline" className="text-[10px] capitalize">{fileCategory}</Badge>
+                            <span className="text-[11px] text-slate-400">{formatFileSize(file.size)}</span>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-500" onClick={clearFile}>
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
@@ -273,17 +358,23 @@ export default function UploadForm() {
                       </div>
                       <div className="text-center">
                         <p className="text-sm font-semibold text-slate-900">Click to upload</p>
-                        <p className="text-xs text-slate-500">JPG, PNG or GIF (Max 10MB)</p>
+                        <p className="text-xs text-slate-500">Any file type up to 50MB</p>
                       </div>
-                      <input 
-                        id="file-upload" 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/*"
-                        onChange={handleFileChange} 
-                      />
+                      <div className="flex flex-wrap justify-center gap-1 px-4">
+                        {['JPG', 'PNG', 'MP4', 'PDF', 'MP3'].map(t => (
+                          <span key={t} className="text-[9px] font-semibold bg-white border border-slate-200 text-slate-400 px-1.5 py-0.5 rounded">{t}</span>
+                        ))}
+                      </div>
                     </div>
                   )}
+
+                  <input 
+                    id="file-upload" 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+                    onChange={handleFileChange} 
+                  />
 
                   <div className="mt-8 space-y-3">
                     <Button 

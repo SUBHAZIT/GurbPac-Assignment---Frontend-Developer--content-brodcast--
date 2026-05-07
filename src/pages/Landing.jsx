@@ -299,6 +299,15 @@ export default function LandingPage() {
               </>
             ) : (
               <>
+                <Link to="/live/all">
+                  <button className="hidden sm:flex items-center gap-2 text-sm font-black text-slate-600 hover:text-teal-600 px-4 py-2 transition-colors">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                    </span>
+                    WATCH LIVE
+                  </button>
+                </Link>
                 <Link to="/auth">
                   <button className="hidden sm:block text-sm font-black text-slate-600 hover:text-slate-900 px-4 py-2 transition-colors">
                     SIGN IN
@@ -324,7 +333,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-48 pb-24 px-6">
+      <section className="pt-28 md:pt-48 pb-16 md:pb-24 px-4 md:px-6">
         <div className="max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-20 items-center">
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
@@ -332,25 +341,33 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
             className="space-y-10"
           >
-            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-teal-50 border border-teal-100 shadow-sm text-xs font-black text-teal-600">
-               <div className="h-5 w-5 bg-teal-500 rounded-lg flex items-center justify-center">
-                  <Sparkles className="h-3 w-3 text-white" />
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-teal-50 border border-teal-100 shadow-sm text-[10px] md:text-xs font-black text-teal-600">
+               <div className="h-4 w-4 md:h-5 md:w-5 bg-teal-500 rounded-lg flex items-center justify-center">
+                  <Sparkles className="h-2.5 w-2.5 md:h-3 md:w-3 text-white" />
                </div>
-               BUILD YOUR BROADCAST STRATEGY FOR 2026. LET'S GET STARTED.
+               <span className="hidden sm:inline">BUILD YOUR BROADCAST STRATEGY FOR 2026. LET'S GET STARTED.</span>
+               <span className="sm:hidden">GET STARTED WITH STREAMING</span>
             </div>
 
-            <h1 className="text-7xl md:text-8xl font-black text-slate-900 leading-[0.9] tracking-tighter">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-slate-900 leading-[0.9] tracking-tighter">
               GREAT CONTENT <br/> COMES ALIVE <br/> WITH STREAMING!
             </h1>
             
-            <p className="text-xl text-slate-500 font-bold max-w-xl leading-relaxed uppercase">
+            <p className="text-sm sm:text-base md:text-xl text-slate-500 font-bold max-w-xl leading-relaxed uppercase">
               CREATE, MANAGE AND IMPLEMENT LIGHTWEIGHT BROADCASTS ACROSS INSTITUTIONS, APPS, PRESENTATIONS, SOCIAL AND MORE.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center gap-6 pt-4">
-              <Link to="/auth">
-                <Button className="bg-teal-500 hover:bg-teal-600 text-white font-black px-10 py-8 rounded-xl text-lg shadow-2xl shadow-teal-500/20 transition-all hover:-translate-y-1">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4">
+              <Link to="/auth" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto bg-teal-500 hover:bg-teal-600 text-white font-black px-8 md:px-10 py-6 md:py-8 rounded-xl text-base md:text-lg shadow-2xl shadow-teal-500/20 transition-all hover:-translate-y-1">
                   GO TO MY DASHBOARD
+                </Button>
+              </Link>
+              <Link to="/live/all" className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto border-2 border-slate-200 hover:border-teal-500 text-slate-700 hover:text-teal-600 font-black px-6 md:px-8 py-6 md:py-8 rounded-xl text-base md:text-lg transition-all hover:-translate-y-1 gap-2 group">
+                  <Play className="h-4 w-4 md:h-5 md:w-5 text-teal-500 group-hover:scale-110 transition-transform" />
+                  WATCH LIVE
+                  <span className="text-[9px] md:text-[10px] bg-teal-50 text-teal-600 px-2 py-0.5 rounded-full font-black border border-teal-100">10 FREE</span>
                 </Button>
               </Link>
             </div>
@@ -392,11 +409,11 @@ export default function LandingPage() {
       {/* Integrations Section */}
       <section id="integrations-section" className="py-32 px-6 relative overflow-hidden">
         <div className="max-w-[1000px] mx-auto text-center space-y-12 relative z-10">
-           <h2 className="text-6xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none uppercase">
-             IMPLEMENT YOUR BROADCASTS <br/> IN JUST A FEW CLICKS
+           <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter leading-none uppercase">
+             IMPLEMENT YOUR BROADCASTS <br className="hidden md:block"/> IN JUST A FEW CLICKS
            </h2>
-           <p className="text-xl text-slate-400 font-bold uppercase">BUILT TO INTEGRATE WITH POPULAR EDUCATIONAL AND DEVELOPER TOOLS.</p>
-           <Button className="bg-teal-500 hover:bg-teal-600 text-white font-black px-12 py-8 rounded-xl text-xl shadow-xl shadow-teal-500/10 transition-all hover:scale-105">
+           <p className="text-sm md:text-xl text-slate-400 font-bold uppercase">BUILT TO INTEGRATE WITH POPULAR EDUCATIONAL AND DEVELOPER TOOLS.</p>
+           <Button className="bg-teal-500 hover:bg-teal-600 text-white font-black px-8 py-6 md:px-12 md:py-8 rounded-xl text-base md:text-xl w-full md:w-auto shadow-xl shadow-teal-500/10 transition-all hover:scale-105">
              VIEW ALL INTEGRATIONS
            </Button>
         </div>
@@ -422,21 +439,21 @@ export default function LandingPage() {
       {/* Enterprise Section (Bento Grid) */}
       <section id="enterprise-section" className="py-32 px-6 bg-slate-50/50">
         <div className="max-w-[1400px] mx-auto text-center space-y-10">
-          <h2 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight leading-none uppercase">
-            A MODERN BROADCASTING WORKFLOW <br/> BUILT FOR TEAMS AND ENTERPRISES
+          <h2 className="text-3xl md:text-5xl lg:text-7xl font-black text-slate-900 tracking-tight leading-none uppercase">
+            A MODERN BROADCASTING WORKFLOW <br className="hidden md:block"/> BUILT FOR TEAMS AND ENTERPRISES
           </h2>
-          <p className="text-xl text-slate-400 font-bold max-w-2xl mx-auto uppercase">
+          <p className="text-sm md:text-xl text-slate-400 font-bold max-w-2xl mx-auto uppercase">
             SAVE COUNTLESS DESIGN AND DEVELOPMENT HOURS WITH A MODERN CONTENT BROADCASTING WORKFLOW.
           </p>
-          <Button className="bg-teal-500 hover:bg-teal-600 text-white font-black px-12 py-8 rounded-xl text-xl shadow-xl shadow-teal-500/10">
+          <Button className="bg-teal-500 hover:bg-teal-600 text-white font-black px-8 py-6 md:px-12 md:py-8 rounded-xl text-base md:text-xl w-full md:w-auto shadow-xl shadow-teal-500/10">
             VIEW ALL FEATURES
           </Button>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 pt-20">
-            <div className="lg:col-span-2 p-12 bg-white rounded-[3rem] shadow-sm border border-slate-100 flex flex-col justify-between items-start text-left space-y-8 group hover:shadow-2xl transition-all duration-500">
-               <div className="space-y-6">
-                 <h3 className="text-4xl font-black text-slate-900 uppercase">SEAMLESS INSTITUTIONAL HANDOFF</h3>
-                 <p className="text-lg text-slate-400 font-bold uppercase">PREVIEW, TEST, OPTIMIZE AND IMPLEMENT BROADCASTS WITH OUR BUILT-IN MODERATION PIPELINES AND STUDENT ANALYTICS.</p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 pt-10 md:pt-20">
+            <div className="lg:col-span-2 p-6 md:p-12 bg-white rounded-3xl md:rounded-[3rem] shadow-sm border border-slate-100 flex flex-col justify-between items-start text-left space-y-8 group hover:shadow-2xl transition-all duration-500">
+               <div className="space-y-4 md:space-y-6">
+                 <h3 className="text-2xl md:text-4xl font-black text-slate-900 uppercase">SEAMLESS INSTITUTIONAL HANDOFF</h3>
+                 <p className="text-sm md:text-lg text-slate-400 font-bold uppercase">PREVIEW, TEST, OPTIMIZE AND IMPLEMENT BROADCASTS WITH OUR BUILT-IN MODERATION PIPELINES AND STUDENT ANALYTICS.</p>
                </div>
                <div className="w-full h-80 bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-transparent" />
@@ -449,10 +466,10 @@ export default function LandingPage() {
                </div>
             </div>
 
-            <div className="p-12 bg-white rounded-[3rem] shadow-sm border border-slate-100 flex flex-col justify-between items-start text-left space-y-8 hover:shadow-2xl transition-all duration-500">
-               <div className="space-y-6">
-                  <h3 className="text-3xl font-black text-slate-900 uppercase">INTEGRATION</h3>
-                  <p className="text-slate-400 font-bold uppercase">ACCESS YOUR PRIVATE INSTITUTIONAL WORKSPACE DIRECTLY WITHIN CANVAS, GOOGLE CLASSROOM, AND TEAMS.</p>
+            <div className="p-6 md:p-12 bg-white rounded-3xl md:rounded-[3rem] shadow-sm border border-slate-100 flex flex-col justify-between items-start text-left space-y-8 hover:shadow-2xl transition-all duration-500">
+               <div className="space-y-4 md:space-y-6">
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 uppercase">INTEGRATION</h3>
+                  <p className="text-sm md:text-base text-slate-400 font-bold uppercase">ACCESS YOUR PRIVATE INSTITUTIONAL WORKSPACE DIRECTLY WITHIN CANVAS, GOOGLE CLASSROOM, AND TEAMS.</p>
                </div>
                <div className="w-full h-48 bg-teal-50 rounded-3xl flex items-center justify-center">
                   <Workflow className="h-20 w-20 text-teal-500 opacity-20" />
@@ -466,10 +483,10 @@ export default function LandingPage() {
       <section id="testimonials-section" className="py-28 bg-gradient-to-b from-slate-50/50 to-white overflow-hidden">
          <div className="max-w-[1400px] mx-auto px-6 mb-20 text-center space-y-5">
             <p className="text-sm font-black text-teal-500 tracking-widest">TESTIMONIALS</p>
-            <h2 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter uppercase leading-none">
-              LOVED BY EDUCATORS. <br/> TRUSTED BY INSTITUTIONS.
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter uppercase leading-none">
+              LOVED BY EDUCATORS. <br className="hidden md:block"/> TRUSTED BY INSTITUTIONS.
             </h2>
-            <p className="text-lg text-slate-400 font-bold max-w-xl mx-auto">HEAR FROM THE TEAMS AND EDUCATORS WHO RELY ON STREAMPRO EVERY DAY.</p>
+            <p className="text-sm md:text-lg text-slate-400 font-bold max-w-xl mx-auto">HEAR FROM THE TEAMS AND EDUCATORS WHO RELY ON STREAMPRO EVERY DAY.</p>
          </div>
          <div className="space-y-5">
             <MarqueeRow items={marqueeRow1} direction="left" speed={55} />
@@ -481,11 +498,11 @@ export default function LandingPage() {
       <section id="assets-section" className="py-32 px-6 bg-white">
         <div className="max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-20 items-center">
            <div className="space-y-12">
-              <h2 className="text-7xl font-black text-slate-900 tracking-tighter uppercase leading-[0.9]">DIGITAL ASSET <br/> MANAGEMENT</h2>
-              <p className="text-xl text-slate-400 font-bold uppercase max-w-xl">
+              <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 tracking-tighter uppercase leading-[0.9]">DIGITAL ASSET <br className="hidden md:block"/> MANAGEMENT</h2>
+              <p className="text-sm md:text-xl text-slate-400 font-bold uppercase max-w-xl">
                  PREVIEW CONTENT AND COURSE MATERIALS WITHOUT OPENING THE APP. MANAGE EVERY IMAGE FORMAT, VIDEO TYPE, AND NATIVE BROADCAST ASSET.
               </p>
-              <Button className="bg-teal-500 hover:bg-teal-600 text-white font-black px-10 py-6 rounded-xl text-lg uppercase shadow-xl shadow-teal-500/20">LEARN MORE</Button>
+              <Button className="bg-teal-500 hover:bg-teal-600 text-white font-black px-10 py-6 rounded-xl text-base md:text-lg uppercase shadow-xl shadow-teal-500/20 w-full sm:w-auto">LEARN MORE</Button>
               
               <div className="space-y-8 pt-6">
                  {[
@@ -529,30 +546,30 @@ export default function LandingPage() {
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_-20%,#0f766e,transparent)] opacity-20" />
         <div className="max-w-[1400px] mx-auto grid lg:grid-cols-5 gap-20 items-center relative z-10">
           <div className="lg:col-span-3 space-y-12">
-            <h2 className="text-7xl md:text-9xl font-black tracking-tighter leading-[0.85] uppercase">
-              YOUR CONTENT <br/> BROADCASTING, <br/> SIMPLIFIED
+            <h2 className="text-5xl md:text-7xl lg:text-9xl font-black tracking-tighter leading-[0.85] uppercase">
+              YOUR CONTENT <br className="hidden md:block"/> BROADCASTING, <br className="hidden md:block"/> SIMPLIFIED
             </h2>
-            <p className="text-xl md:text-2xl text-slate-400 font-bold max-w-2xl uppercase">
+            <p className="text-sm md:text-xl lg:text-2xl text-slate-400 font-bold max-w-2xl uppercase">
               SAVE COUNTLESS HOURS AND STREAMLINE YOUR BROADCAST WORKFLOW WITH STREAMPRO CREATOR, OR DESIGN RIGHT WITHIN YOUR FAVORITE TOOLS. WE MAKE BROADCASTING EASY.
             </p>
 
-            <div className="flex flex-wrap gap-4">
-              <button className="px-8 py-4 bg-white text-slate-900 rounded-xl font-black flex items-center gap-3 hover:bg-teal-50 transition-colors uppercase">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-4">
+              <button className="px-6 py-4 md:px-8 bg-white text-slate-900 rounded-xl font-black flex items-center justify-center gap-3 hover:bg-teal-50 transition-colors uppercase w-full sm:w-auto text-sm md:text-base">
                 <Command className="h-5 w-5" />
                 STREAMPRO CREATOR
               </button>
-              <button className="px-8 py-4 bg-slate-900 border border-slate-800 text-slate-400 rounded-xl font-black flex items-center gap-3 hover:text-white hover:bg-slate-800 transition-all uppercase">
+              <button className="px-6 py-4 md:px-8 bg-slate-900 border border-slate-800 text-slate-400 rounded-xl font-black flex items-center justify-center gap-3 hover:text-white hover:bg-slate-800 transition-all uppercase w-full sm:w-auto text-sm md:text-base">
                 <Layers className="h-5 w-5" />
                 STREAMPRO FOR TEAMS
               </button>
             </div>
 
             <div className="pt-20 space-y-10">
-               <h3 className="text-4xl font-black uppercase">STREAMPRO CREATOR</h3>
-               <p className="text-xl text-slate-400 font-bold max-w-xl uppercase">
+               <h3 className="text-2xl md:text-4xl font-black uppercase">STREAMPRO CREATOR</h3>
+               <p className="text-sm md:text-xl text-slate-400 font-bold max-w-xl uppercase">
                  DESIGNED TO CREATE ULTRA-LIGHTWEIGHT, HIGHLY CUSTOMIZABLE AND INTERACTIVE BROADCASTS FOR WEB, APPS AND SOCIAL. SUPERPOWERED WITH AI-BASED TOOLS.
                </p>
-               <Button className="bg-white text-slate-900 hover:bg-teal-50 font-black px-10 py-6 rounded-xl text-lg uppercase">
+               <Button className="bg-white text-slate-900 hover:bg-teal-50 font-black px-10 py-6 rounded-xl text-base md:text-lg uppercase w-full sm:w-auto">
                   START CREATING
                </Button>
             </div>
@@ -576,8 +593,8 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-40 px-6 relative overflow-hidden">
-         <div className="max-w-[1200px] mx-auto bg-slate-50 rounded-[4rem] p-24 text-left relative overflow-hidden group">
+      <section className="py-24 md:py-40 px-6 relative overflow-hidden">
+         <div className="max-w-[1200px] mx-auto bg-slate-50 rounded-3xl md:rounded-[4rem] p-8 md:p-24 text-left relative overflow-hidden group">
             {/* Decorative Teal Shapes */}
             <div className="absolute bottom-0 right-0 w-2/3 h-2/3 bg-teal-400/20 blur-[80px] rounded-full translate-x-1/4 translate-y-1/4 group-hover:scale-110 transition-transform duration-700" />
             <div className="absolute -bottom-10 right-20 flex gap-4 opacity-40 group-hover:translate-y-[-20px] transition-transform duration-700">
@@ -586,12 +603,12 @@ export default function LandingPage() {
                ))}
             </div>
 
-            <div className="relative z-10 space-y-10 max-w-2xl">
-               <h2 className="text-6xl md:text-8xl font-black tracking-tighter text-slate-900 uppercase leading-none">CREATE, <br/> COLLABORATE <br/> AND BROADCAST.</h2>
-               <p className="text-2xl text-slate-400 font-bold uppercase">EFFORTLESSLY BRING QUALITY BROADCASTING TO YOUR INSTITUTION.</p>
-               <div className="flex flex-col sm:flex-row items-center gap-6">
-                 <Link to="/auth">
-                   <Button className="bg-teal-500 hover:bg-teal-600 text-white font-black px-12 py-8 rounded-2xl text-2xl shadow-2xl shadow-teal-500/20 transition-all hover:scale-105 active:scale-95 uppercase">
+            <div className="relative z-10 space-y-6 md:space-y-10 max-w-2xl">
+               <h2 className="text-4xl md:text-6xl lg:text-8xl font-black tracking-tighter text-slate-900 uppercase leading-none">CREATE, <br/> COLLABORATE <br/> AND BROADCAST.</h2>
+               <p className="text-sm md:text-2xl text-slate-400 font-bold uppercase">EFFORTLESSLY BRING QUALITY BROADCASTING TO YOUR INSTITUTION.</p>
+               <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6 pt-4">
+                 <Link to="/auth" className="w-full sm:w-auto">
+                   <Button className="bg-teal-500 hover:bg-teal-600 text-white font-black px-8 py-6 md:px-12 md:py-8 rounded-xl md:rounded-2xl text-base md:text-2xl w-full sm:w-auto shadow-2xl shadow-teal-500/20 transition-all hover:scale-105 active:scale-95 uppercase">
                      GO TO MY DASHBOARD
                    </Button>
                  </Link>

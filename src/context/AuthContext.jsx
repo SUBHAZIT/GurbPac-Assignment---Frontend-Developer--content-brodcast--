@@ -37,7 +37,7 @@ export function AuthProvider({ children }) {
     } else if (role === 'teacher') {
       navigate('/teacher/dashboard');
     } else {
-      navigate('/live/all');
+      navigate('/viewer/dashboard');
     }
     return data;
   };

@@ -95,13 +95,11 @@ export const contentService = {
   },
 
   async getLiveContent(teacherId) {
-    const now = new Date().toISOString();
     let query = supabase
       .from('content')
       .select('*')
       .eq('status', 'approved')
-      .lte('start_time', now)
-      .gte('end_time', now);
+      .order('created_at', { ascending: false });
 
     if (teacherId !== 'all') {
       query = query.eq('teacher_id', teacherId);

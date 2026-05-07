@@ -9,7 +9,9 @@ import PrincipalPending from '@/pages/principal/Pending';
 import PrincipalAllContent from '@/pages/principal/AllContent';
 import ManageTeachers from '@/pages/principal/ManageTeachers';
 import ProfilePage from '@/pages/shared/Profile';
+import AdminSetup from '@/pages/admin/Setup';
 import LiveBroadcast from '@/pages/live/LiveBroadcast';
+import ViewerDashboard from '@/pages/viewer/Dashboard';
 import RootRedirect from '@/components/shared/RootRedirect';
 
 function App() {
@@ -33,6 +35,12 @@ function App() {
       <Route path="/principal/content" element={<PrincipalAllContent />} />
       <Route path="/principal/manage" element={<ManageTeachers />} />
       
+      {/* Admin Bootstrap (remove in production) */}
+      <Route path="/admin/setup" element={<AdminSetup />} />
+
+      {/* Viewer Routes */}
+      <Route path="/viewer/dashboard" element={<ViewerDashboard />} />
+
       {/* Public Routes */}
       <Route path="/live/:teacherId" element={<LiveBroadcast />} />
       

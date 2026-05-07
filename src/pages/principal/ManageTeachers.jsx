@@ -157,8 +157,8 @@ export default function ManageTeachers() {
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Manage Staff</h1>
-            <p className="text-slate-500 mt-1">Create and manage teacher and principal accounts.</p>
+            <h1 className="text-xl md:text-3xl font-bold text-slate-900 tracking-tight">Manage Staff</h1>
+            <p className="text-slate-500 mt-1 text-sm">Create and manage teacher and principal accounts.</p>
           </div>
           <Button 
             className="bg-teal-500 hover:bg-teal-600 gap-2"
@@ -210,8 +210,8 @@ export default function ManageTeachers() {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <Table>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto">
+          <Table className="min-w-[500px]">
             <TableHeader className="bg-slate-50/50">
               <TableRow>
                 <TableHead className="font-semibold text-slate-700">Name</TableHead>

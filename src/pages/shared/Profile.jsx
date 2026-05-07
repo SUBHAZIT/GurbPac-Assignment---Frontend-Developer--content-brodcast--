@@ -80,8 +80,8 @@ export default function ProfilePage() {
     <DashboardLayout>
       <div className="max-w-2xl mx-auto py-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Profile Settings</h1>
-          <p className="text-slate-500 mt-1">Manage your personal information.</p>
+          <h1 className="text-xl md:text-3xl font-bold text-slate-900 tracking-tight">Profile Settings</h1>
+          <p className="text-slate-500 mt-1 text-sm">Manage your personal information.</p>
         </div>
 
         <div className="space-y-6">
@@ -104,7 +104,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl">
                 <div className="flex items-center gap-3">
                   <Mail className="h-4 w-4 text-slate-400" />
                   <div>

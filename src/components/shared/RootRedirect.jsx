@@ -21,7 +21,7 @@ export default function RootRedirect() {
     } else if (role === 'principal') {
       navigate('/principal/dashboard');
     } else {
-      navigate('/live/all');
+      navigate('/viewer/dashboard');
     }
   }, [user, loading, navigate]);
 
