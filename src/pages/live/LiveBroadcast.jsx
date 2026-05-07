@@ -3,14 +3,14 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { contentService } from '@/services/content.service';
 import { viewerService } from '@/services/viewer.service';
-import { Play, Clock, BookOpen, User, Info, Loader2, Lock, Radio, Eye } from 'lucide-react';
+import { Play, Clock, BookOpen, User, Info, Loader2, Lock, Radio, Eye, LogOut } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LiveBroadcast() {
   const { teacherId } = useParams();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [content, setContent] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -227,6 +227,15 @@ export default function LiveBroadcast() {
           <div className="text-xs font-bold text-slate-500 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
             {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
+          {user && (
+            <button
+              onClick={logout}
+              className="flex items-center gap-1.5 text-xs font-semibold text-white/40 hover:text-rose-400 bg-white/5 hover:bg-rose-500/10 px-3 py-1.5 rounded-full border border-white/5 hover:border-rose-500/20 transition-all"
+            >
+              <LogOut className="h-3 w-3" />
+              Logout
+            </button>
+          )}
         </div>
       </div>
 
