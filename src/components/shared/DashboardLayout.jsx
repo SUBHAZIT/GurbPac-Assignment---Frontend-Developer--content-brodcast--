@@ -49,7 +49,7 @@ export default function DashboardLayout({ children, allowedRole }) {
     <div className="flex h-screen bg-slate-50">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -67,7 +67,7 @@ export default function DashboardLayout({ children, allowedRole }) {
       <main className="flex-1 overflow-y-auto">
         {/* Mobile top bar */}
         <div className="sticky top-0 z-30 md:hidden bg-white/80 backdrop-blur-lg border-b border-slate-200 px-4 h-14 flex items-center justify-between">
-          <button 
+          <button
             onClick={() => setSidebarOpen(true)}
             className="h-9 w-9 rounded-lg bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
           >

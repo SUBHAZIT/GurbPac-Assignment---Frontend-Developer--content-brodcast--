@@ -131,7 +131,7 @@ export default function AdminSetup() {
           <div>
             <p className="text-sm font-semibold text-amber-300">Bootstrap Admin Panel</p>
             <p className="text-xs text-amber-300/60 mt-1 leading-relaxed">
-              This page directly reads and updates the <code className="bg-white/10 px-1.5 py-0.5 rounded text-amber-200">profiles</code> table. 
+              This page directly reads and updates the <code className="bg-white/10 px-1.5 py-0.5 rounded text-amber-200">profiles</code> table.
               Use it to promote the first user to <strong>principal</strong>. Remove this route before production.
             </p>
           </div>
@@ -154,7 +154,7 @@ export default function AdminSetup() {
             </div>
             <div className="relative">
               <pre className="bg-black/40 border border-white/10 rounded-lg p-4 text-xs text-teal-300 font-mono whitespace-pre-wrap overflow-x-auto">
-{FIX_SQL}
+                {FIX_SQL}
               </pre>
               <Button
                 variant="ghost"
@@ -176,9 +176,9 @@ export default function AdminSetup() {
             <h1 className="text-xl md:text-2xl font-bold">User Profiles</h1>
             <p className="text-white/40 text-sm mt-1">{profiles.length} user(s) in the database</p>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={fetchProfiles}
             className="gap-2 border-white/10 text-white/60 hover:text-white hover:bg-white/5"
             disabled={loading}
@@ -239,7 +239,7 @@ export default function AdminSetup() {
                       <TableCell className="text-white/60 text-sm">{profile.email}</TableCell>
                       <TableCell>{getRoleBadge(profile.role)}</TableCell>
                       <TableCell>
-                        <Select 
+                        <Select
                           value={pendingChanges[profile.id] || profile.role}
                           onValueChange={(val) => handleRoleChange(profile.id, val)}
                         >
@@ -282,7 +282,7 @@ export default function AdminSetup() {
           <ol className="space-y-2 text-sm text-white/50">
             <li className="flex gap-2">
               <span className="text-teal-400 font-bold flex-shrink-0">1.</span>
-              Run all migrations (001–004) in <strong className="text-white/70">Supabase Dashboard → SQL Editor</strong>.
+              <strong className="text-white/70">if you are a  <strong className="text-white/70">tester then -</strong></strong>
             </li>
             <li className="flex gap-2">
               <span className="text-teal-400 font-bold flex-shrink-0">2.</span>

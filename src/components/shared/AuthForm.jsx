@@ -293,7 +293,14 @@ export default function AuthForm() {
                         </button>
                       </div>
                     </FormControl>
-                    <FormMessage className="text-rose-400 text-xs" />
+                    <div className="flex items-center justify-between mt-2">
+                      <FormMessage className="text-rose-400 text-xs" />
+                      {activeTab === 'login' && (
+                        <button type="button" onClick={() => toast.info('Password reset instructions sent to your email (Demo)')} className="text-[11px] text-teal-400 hover:text-teal-300 font-medium transition-colors ml-auto">
+                          Forgot password?
+                        </button>
+                      )}
+                    </div>
                   </FormItem>
                 )}
               />
@@ -318,32 +325,25 @@ export default function AuthForm() {
           {/* Divider */}
           <div className="flex items-center gap-3 my-6">
             <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-[11px] text-white/20 font-medium">Demo accounts</span>
+            <span className="text-[11px] text-white/20 font-medium">Test accounts</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
-          {/* Demo Credentials */}
-          <div className="grid grid-cols-3 gap-2">
+          {/* Test Credentials */}
+          <div className="grid grid-cols-2 gap-2">
             <button 
-              onClick={() => { form.setValue('email', 'teacher@demo.com'); form.setValue('password', 'demo123'); setActiveTab('login'); }}
+              onClick={() => { form.setValue('email', 'subhajitofficial9900@gmail.com'); form.setValue('password', '00000000'); setActiveTab('login'); }}
               className="p-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] rounded-xl transition-all group cursor-pointer text-left"
             >
               <p className="text-[10px] font-semibold text-teal-400 mb-1">Teacher</p>
-              <p className="text-[10px] text-white/40 font-medium group-hover:text-white/60 transition-colors truncate">teacher@demo</p>
+              <p className="text-[10px] text-white/40 font-medium group-hover:text-white/60 transition-colors truncate" title="subhajitofficial9900@gmail.com">subhajitofficial...</p>
             </button>
             <button 
-              onClick={() => { form.setValue('email', 'principal@demo.com'); form.setValue('password', 'demo123'); setActiveTab('login'); }}
+              onClick={() => { form.setValue('email', 'subhajitpathak9900@gmail.com'); form.setValue('password', '12345678'); setActiveTab('login'); }}
               className="p-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] rounded-xl transition-all group cursor-pointer text-left"
             >
               <p className="text-[10px] font-semibold text-teal-400 mb-1">Principal</p>
-              <p className="text-[10px] text-white/40 font-medium group-hover:text-white/60 transition-colors truncate">principal@demo</p>
-            </button>
-            <button 
-              onClick={() => { form.setValue('email', 'viewer@demo.com'); form.setValue('password', 'demo123'); setActiveTab('login'); }}
-              className="p-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] rounded-xl transition-all group cursor-pointer text-left"
-            >
-              <p className="text-[10px] font-semibold text-teal-400 mb-1">Viewer</p>
-              <p className="text-[10px] text-white/40 font-medium group-hover:text-white/60 transition-colors truncate">viewer@demo</p>
+              <p className="text-[10px] text-white/40 font-medium group-hover:text-white/60 transition-colors truncate" title="subhajitpathak9900@gmail.com">subhajitpathak...</p>
             </button>
           </div>
 

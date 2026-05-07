@@ -83,6 +83,19 @@ npm run build
 npm run preview
 ```
 
+### Testing & Admin Setup
+
+To facilitate easy testing of all platform features without database access, a temporary bootstrap admin panel is included.
+
+**How to test:**
+1. Navigate to `/admin/setup` (e.g., `http://localhost:5173/admin/setup`).
+2. This page allows you to bypass regular auth flows and directly manage the `profiles` database table.
+3. You can instantly promote any user to **Principal** or **Teacher** with a single click.
+4. **Pre-configured Test Accounts:**
+   - **Principal:** `subhajitpathak9900@gmail.com` | Password: `12345678`
+   - **Teacher:** `subhajitofficial9900@gmail.com` | Password: `00000000`
+5. *Note: Ensure you remove or secure the `/admin/setup` route before deploying to production.*
+
 ---
 
 ## Project Structure
@@ -393,7 +406,9 @@ Components (UI) ← Pages (Composition) ← Services (API) ← Supabase (Backend
 
 ## UI/UX Features
 
-- ✅ **Responsive** sidebar + content layout
+- ✅ **Fully Responsive** mobile-first layout (highly optimized for iPads/tablets)
+- ✅ **Real-time Live Chat** and **Like system** on live broadcasts
+- ✅ **Watch History** tracking and engagement metrics
 - ✅ **Role-aware** navigation and page access
 - ✅ **Personalized greetings** (time-based + user name)
 - ✅ **Skeleton loaders** on all tables and stat cards
