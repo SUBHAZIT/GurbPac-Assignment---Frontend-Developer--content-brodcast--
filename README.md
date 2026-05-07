@@ -429,3 +429,5 @@ Components (UI) ← Pages (Composition) ← Services (API) ← Supabase (Backend
 ## License
 
 Private – All rights reserved.
+
+<!-- Last deployment trigger update: Fri May  8 04:17:54 IST 2026 -->
