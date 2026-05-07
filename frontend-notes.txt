@@ -1,0 +1,54 @@
+Content Broadcasting System - Frontend Documentation
+
+1. Project Structure
+--------------------
+src/
+  app/              # Next.js App Router (Pages & Routes)
+  components/       # React components
+    ui/             # shadcn/ui components (base primitives)
+    shared/         # Components used across multiple pages (Sidebar, Layouts)
+    teacher/        # Teacher-specific components (UploadForm)
+    principal/      # Principal-specific components (ApprovalModal)
+  services/         # API Service Layer (Separation of concerns)
+    auth.service.js # Authentication logic
+    content.service.js # Content CRUD & status management
+  context/          # State Management (AuthContext)
+  hooks/            # Reusable business logic
+  lib/              # Library configurations (Supabase, utils)
+  utils/            # Helper functions
+
+2. Authentication Flow
+----------------------
+- Managed via `AuthContext` and `Supabase Auth`.
+- Users log in through `/auth`.
+- Upon success, the session is stored in Supabase's local storage.
+- The `AuthContext` provides the `user` object and `login/logout` methods globally.
+- Protected routes use `DashboardLayout` to check session validity.
+
+3. Role-Based Routing
+---------------------
+- Roles: `teacher` and `principal`.
+- Routing logic is centralized in `DashboardLayout`:
+  * If no user: Redirect to `/auth`.
+  * If role mismatch: Redirect to the user's correct dashboard.
+  * Sidebar links dynamically adjust based on the user's role.
+
+4. API Integration Approach
+---------------------------
+- Follows a strict Service Layer pattern.
+- Components never call Supabase or Fetch/Axios directly.
+- All requests go through `services/`, allowing the backend to be swapped easily.
+- Error handling is managed at the component level using `try-catch` and `sonner` toasts.
+
+5. State Management Approach
+----------------------------
+- Authentication: Context API (Global).
+- UI State: Local `useState` for forms, loading, and simple lists.
+- Form Management: `react-hook-form` with `zod` validation for complex forms.
+
+6. Assumptions
+--------------
+- The system assumes a Supabase instance is configured with `profiles` and `content` tables.
+- File storage is handled via Supabase Storage ('content-files' bucket).
+- Live broadcast page uses polling (simulated via 60s intervals) and client-side rotation logic.
+- "0 auth" was interpreted as "Auth0" but implemented with Supabase Auth for better DX, though the service layer is structured to support swapping to Auth0.
