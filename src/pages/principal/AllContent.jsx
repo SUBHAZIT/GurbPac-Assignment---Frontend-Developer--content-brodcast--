@@ -150,7 +150,7 @@ export default function PrincipalAllContent() {
                     </TableCell>
                     <TableCell className="text-right">
                       <a href={item.file_url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4 text-slate-400 hover:text-indigo-600 cursor-pointer transition-colors inline" />
+                        <ExternalLink className="h-4 w-4 text-slate-400 hover:text-teal-600 cursor-pointer transition-colors inline" />
                       </a>
                     </TableCell>
                   </TableRow>

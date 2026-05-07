@@ -7,7 +7,7 @@ import {
   CheckCircle, 
   Users, 
   LogOut,
-  Play
+  Radio
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -36,10 +36,10 @@ export function Sidebar() {
     <div className="flex h-full w-64 flex-col bg-white border-r border-slate-200">
       <div className="flex h-16 items-center px-6 border-b border-slate-200">
         <Link to="/" className="flex items-center gap-2">
-          <div className="bg-indigo-600 p-1.5 rounded-lg">
-            <Play className="h-5 w-5 text-white fill-white" />
+          <div className="bg-teal-500 p-1.5 rounded-lg">
+            <Radio className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xl font-bold text-slate-900 tracking-tight">EduStream</span>
+          <span className="text-xl font-bold text-slate-900 tracking-tight">StreamPro</span>
         </Link>
       </div>
       
@@ -51,15 +51,15 @@ export function Sidebar() {
             return (
               <Link
                 key={link.name}
-                href={link.href}
+                to={link.href}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                  'flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors',
                   isActive 
-                    ? 'bg-indigo-50 text-indigo-700' 
+                    ? 'bg-teal-50 text-teal-700' 
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 )}
               >
-                <Icon className={cn('h-5 w-5', isActive ? 'text-indigo-600' : 'text-slate-400')} />
+                <Icon className={cn('h-5 w-5', isActive ? 'text-teal-600' : 'text-slate-400')} />
                 {link.name}
               </Link>
             );
@@ -69,7 +69,7 @@ export function Sidebar() {
 
       <div className="p-4 border-t border-slate-200">
         <div className="flex items-center gap-3 px-3 py-2 mb-2">
-          <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-semibold text-xs border border-slate-200">
+          <div className="h-8 w-8 rounded-full bg-teal-500 flex items-center justify-center text-white font-semibold text-xs">
             {user?.profile?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">

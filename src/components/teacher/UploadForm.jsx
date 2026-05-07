@@ -98,8 +98,15 @@ export default function UploadForm() {
 
     setIsLoading(true);
     try {
+      // Map form fields to database column names
       await contentService.uploadContent({
-        ...values,
+        title: values.title,
+        subject: values.subject,
+        description: values.description || '',
+        start_time: values.startTime,
+        end_time: values.endTime,
+        rotation_duration: values.rotationDuration,
+        file_type: file.type.startsWith('image/') ? 'image' : 'document',
         teacher_id: user.id,
       }, file);
       
@@ -262,7 +269,7 @@ export default function UploadForm() {
                       onClick={() => document.getElementById('file-upload').click()}
                     >
                       <div className="p-3 bg-white rounded-full shadow-sm">
-                        <Upload className="h-6 w-6 text-indigo-600" />
+                        <Upload className="h-6 w-6 text-teal-600" />
                       </div>
                       <div className="text-center">
                         <p className="text-sm font-semibold text-slate-900">Click to upload</p>
@@ -281,7 +288,7 @@ export default function UploadForm() {
                   <div className="mt-8 space-y-3">
                     <Button 
                       type="submit" 
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 py-6 font-bold"
+                      className="w-full bg-teal-500 hover:bg-teal-600 py-6 font-bold"
                       disabled={isLoading}
                     >
                       {isLoading ? (

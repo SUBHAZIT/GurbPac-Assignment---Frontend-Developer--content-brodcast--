@@ -121,7 +121,7 @@ export default function PrincipalPending() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="font-medium bg-indigo-50 text-indigo-700 border-indigo-100">{item.subject}</Badge>
+                      <Badge variant="secondary" className="font-medium bg-teal-50 text-teal-700 border-teal-100">{item.subject}</Badge>
                     </TableCell>
                     <TableCell>
                       <div className="text-xs space-y-1">

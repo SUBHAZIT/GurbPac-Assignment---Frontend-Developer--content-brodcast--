@@ -3,7 +3,7 @@ import {
   Clock, 
   CheckCircle2, 
   XCircle, 
-  FileStack 
+  FolderOpen 
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -12,9 +12,10 @@ export function StatsCards({ stats, loading }) {
     {
       title: 'Total Uploaded',
       value: stats?.total || 0,
-      icon: FileStack,
+      icon: FolderOpen,
       color: 'text-blue-600',
       bg: 'bg-blue-50',
+      bar: 'bg-blue-200',
     },
     {
       title: 'Pending Approval',
@@ -22,6 +23,7 @@ export function StatsCards({ stats, loading }) {
       icon: Clock,
       color: 'text-amber-600',
       bg: 'bg-amber-50',
+      bar: 'bg-amber-200',
     },
     {
       title: 'Approved',
@@ -29,6 +31,7 @@ export function StatsCards({ stats, loading }) {
       icon: CheckCircle2,
       color: 'text-emerald-600',
       bg: 'bg-emerald-50',
+      bar: 'bg-emerald-200',
     },
     {
       title: 'Rejected',
@@ -36,6 +39,7 @@ export function StatsCards({ stats, loading }) {
       icon: XCircle,
       color: 'text-rose-600',
       bg: 'bg-rose-50',
+      bar: 'bg-rose-200',
     },
   ];
 
@@ -43,7 +47,7 @@ export function StatsCards({ stats, loading }) {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {items.map((item, index) => (
         <Card key={index} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300">
-          <div className={`h-1 w-full ${item.bg.replace('bg-', 'bg-')}`} />
+          <div className={`h-1 w-full ${item.bar}`} />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4">
             <CardTitle className="text-sm font-medium text-slate-500">
               {item.title}

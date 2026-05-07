@@ -4,7 +4,7 @@ import { contentService } from '@/services/content.service';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { StatsCards } from '@/components/shared/StatsCards';
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowRight, Play } from 'lucide-react';
+import { Plus, ArrowRight, Play, FolderOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -42,7 +42,7 @@ export default function TeacherDashboard() {
               </Button>
             </Link>
             <Link to="/teacher/upload">
-              <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2">
+              <Button className="bg-teal-500 hover:bg-teal-600 gap-2">
                 <Plus className="h-4 w-4" /> Upload New
               </Button>
             </Link>
@@ -56,9 +56,9 @@ export default function TeacherDashboard() {
             <h3 className="font-bold text-slate-900 mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 gap-3">
               <Link to="/teacher/upload">
-                <div className="group p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-100 transition-all cursor-pointer">
+                <div className="group p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-teal-50 hover:border-teal-100 transition-all cursor-pointer">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                    <div className="p-2 bg-teal-100 text-teal-600 rounded-lg group-hover:bg-teal-600 group-hover:text-white transition-colors">
                       <Plus className="h-5 w-5" />
                     </div>
                     <div>
@@ -72,7 +72,7 @@ export default function TeacherDashboard() {
                 <div className="group p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-100 transition-all cursor-pointer">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                      <FileStack className="h-5 w-5" />
+                      <FolderOpen className="h-5 w-5" />
                     </div>
                     <div>
                       <p className="font-semibold text-slate-900">Check Status</p>
@@ -101,27 +101,5 @@ export default function TeacherDashboard() {
         </div>
       </div>
     </DashboardLayout>
-  );
-}
-
-function FileStack({ className }) {
-  return (
-    <svg 
-      className={className} 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-    >
-      <path d="M4 7V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3" />
-      <path d="M2 11v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V11" />
-      <path d="M7 15h10" />
-      <path d="M7 19h10" />
-    </svg>
   );
 }

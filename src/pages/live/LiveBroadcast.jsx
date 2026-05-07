@@ -54,7 +54,7 @@ export default function LiveBroadcast() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8">
-        <Loader2 className="h-12 w-12 text-indigo-500 animate-spin mb-4" />
+        <Loader2 className="h-12 w-12 text-teal-500 animate-spin mb-4" />
         <p className="text-slate-400 font-medium animate-pulse">Initializing Broadcast...</p>
       </div>
     );
@@ -72,7 +72,7 @@ export default function LiveBroadcast() {
         </p>
         <div className="mt-12 h-1 w-64 bg-slate-900 rounded-full overflow-hidden">
           <motion.div 
-            className="h-full bg-indigo-600"
+            className="h-full bg-teal-500"
             animate={{ x: [-256, 256] }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           />
@@ -107,11 +107,11 @@ export default function LiveBroadcast() {
                 {content.map((_, i) => (
                   <div 
                     key={i} 
-                    className={`h-1 w-6 rounded-full transition-colors duration-500 ${i === currentIndex ? 'bg-indigo-500' : 'bg-white/10'}`} 
+                    className={`h-1 w-6 rounded-full transition-colors duration-500 ${i === currentIndex ? 'bg-teal-500' : 'bg-white/10'}`} 
                   />
                 ))}
               </div>
-              <span className="text-xs font-mono font-bold text-indigo-400 w-8">{timeLeft}s</span>
+              <span className="text-xs font-mono font-bold text-teal-400 w-8">{timeLeft}s</span>
             </div>
           )}
           <div className="text-xs font-bold text-slate-500 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
@@ -143,7 +143,7 @@ export default function LiveBroadcast() {
             {/* Content Info */}
             <div className="absolute bottom-0 left-0 w-full p-10 flex flex-col gap-4">
               <div className="flex items-center gap-3">
-                <Badge className="bg-indigo-600 text-white border-none py-1 px-3 text-xs font-bold rounded-full">
+                <Badge className="bg-teal-500 text-white border-none py-1 px-3 text-xs font-bold rounded-full">
                   {activeItem.subject}
                 </Badge>
                 <div className="flex items-center gap-2 text-white/60 text-xs font-medium">
@@ -166,7 +166,7 @@ export default function LiveBroadcast() {
         </AnimatePresence>
 
         {/* Floating Decorative Elements */}
-        <div className="absolute top-20 left-20 h-64 w-64 bg-indigo-600/10 rounded-full blur-[120px] -z-10" />
+        <div className="absolute top-20 left-20 h-64 w-64 bg-teal-500/10 rounded-full blur-[120px] -z-10" />
         <div className="absolute bottom-20 right-20 h-96 w-96 bg-blue-600/10 rounded-full blur-[120px] -z-10" />
       </div>
 
@@ -174,7 +174,7 @@ export default function LiveBroadcast() {
       <div className="h-20 px-12 flex items-center justify-between bg-black/60 backdrop-blur-md border-t border-white/5">
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+            <div className="h-10 w-10 bg-teal-500 rounded-xl flex items-center justify-center">
               <BookOpen className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -197,8 +197,8 @@ export default function LiveBroadcast() {
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Powered by</span>
           <div className="flex items-center gap-1.5 ml-1">
-             <Play className="h-3.5 w-3.5 text-indigo-500 fill-indigo-500" />
-             <span className="text-sm font-black tracking-tighter">EduStream</span>
+             <Play className="h-3.5 w-3.5 text-teal-500 fill-teal-500" />
+             <span className="text-sm font-black tracking-tighter">StreamPro</span>
           </div>
         </div>
       </div>

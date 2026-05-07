@@ -1,54 +1,132 @@
-Content Broadcasting System - Frontend Documentation
+================================================================
+StreamPro – Frontend Technical Notes
+================================================================
 
-1. Project Structure
---------------------
+1. PROJECT STRUCTURE
+================================================================
+
 src/
-  app/              # Next.js App Router (Pages & Routes)
-  components/       # React components
-    ui/             # shadcn/ui components (base primitives)
-    shared/         # Components used across multiple pages (Sidebar, Layouts)
-    teacher/        # Teacher-specific components (UploadForm)
-    principal/      # Principal-specific components (ApprovalModal)
-  services/         # API Service Layer (Separation of concerns)
-    auth.service.js # Authentication logic
-    content.service.js # Content CRUD & status management
-  context/          # State Management (AuthContext)
-  hooks/            # Reusable business logic
-  lib/              # Library configurations (Supabase, utils)
-  utils/            # Helper functions
+├── components/
+│   ├── principal/          # Principal-specific components (ApprovalModal)
+│   ├── shared/             # Shared/reusable components (AuthForm, Sidebar, 
+│   │                         DashboardLayout, StatsCards, RootRedirect)
+│   ├── teacher/            # Teacher-specific components (UploadForm)
+│   └── ui/                 # shadcn/ui primitives (Button, Card, Input, Table, etc.)
+├── context/
+│   └── AuthContext.jsx     # Global auth state (user, login, logout)
+├── hooks/                  # Custom hooks (reserved for future use)
+├── lib/
+│   ├── supabase.js         # Supabase client initialization
+│   └── utils.js            # Utility functions (cn for className merging)
+├── pages/
+│   ├── Landing.jsx         # Public landing page
+│   ├── live/
+│   │   └── LiveBroadcast.jsx  # Public broadcast viewer (/live/:teacherId)
+│   ├── principal/
+│   │   ├── Dashboard.jsx   # Principal overview with stats
+│   │   ├── Pending.jsx     # Pending approval queue
+│   │   └── AllContent.jsx  # Filterable content library
+│   └── teacher/
+│       ├── Dashboard.jsx   # Teacher overview with stats
+│       ├── Upload.jsx      # Upload page wrapper
+│       └── Content.jsx     # Teacher's content list
+├── services/
+│   ├── auth.service.js     # Authentication API calls
+│   ├── content.service.js  # Content CRUD operations
+│   └── approval.service.js # Approval workflow operations
+├── utils/                  # Shared utilities
+├── App.jsx                 # Route definitions
+├── main.jsx                # App entry point
+└── globals.css             # Global styles + Tailwind directives
 
-2. Authentication Flow
-----------------------
-- Managed via `AuthContext` and `Supabase Auth`.
-- Users log in through `/auth`.
-- Upon success, the session is stored in Supabase's local storage.
-- The `AuthContext` provides the `user` object and `login/logout` methods globally.
-- Protected routes use `DashboardLayout` to check session validity.
 
-3. Role-Based Routing
----------------------
-- Roles: `teacher` and `principal`.
-- Routing logic is centralized in `DashboardLayout`:
-  * If no user: Redirect to `/auth`.
-  * If role mismatch: Redirect to the user's correct dashboard.
-  * Sidebar links dynamically adjust based on the user's role.
+2. AUTHENTICATION FLOW
+================================================================
 
-4. API Integration Approach
----------------------------
-- Follows a strict Service Layer pattern.
-- Components never call Supabase or Fetch/Axios directly.
-- All requests go through `services/`, allowing the backend to be swapped easily.
-- Error handling is managed at the component level using `try-catch` and `sonner` toasts.
+- Uses Supabase Auth (email/password)
+- On signup, a Postgres trigger (handle_new_user) auto-creates a 
+  profile row with role and full_name from user metadata
+- AuthContext stores the authenticated user globally via React Context
+- On login: credentials → Supabase Auth → fetch profile → role-based redirect
+- Token is managed by Supabase JS client (auto-refreshes, stored in localStorage)
+- Token is automatically attached to all Supabase requests via the client
+- Unauthenticated users are redirected to /auth by DashboardLayout
+- On logout: clear user state → redirect to /auth
 
-5. State Management Approach
-----------------------------
-- Authentication: Context API (Global).
-- UI State: Local `useState` for forms, loading, and simple lists.
-- Form Management: `react-hook-form` with `zod` validation for complex forms.
 
-6. Assumptions
---------------
-- The system assumes a Supabase instance is configured with `profiles` and `content` tables.
-- File storage is handled via Supabase Storage ('content-files' bucket).
-- Live broadcast page uses polling (simulated via 60s intervals) and client-side rotation logic.
-- "0 auth" was interpreted as "Auth0" but implemented with Supabase Auth for better DX, though the service layer is structured to support swapping to Auth0.
+3. ROLE-BASED ROUTING
+================================================================
+
+Teacher routes:
+  /teacher/dashboard    → TeacherDashboard
+  /teacher/upload       → UploadForm
+  /teacher/content      → TeacherContent
+
+Principal routes:
+  /principal/dashboard  → PrincipalDashboard
+  /principal/pending    → PendingApprovals
+  /principal/content    → AllContent
+
+Public routes:
+  /                     → RootRedirect (auth-aware: redirects to dashboard or landing)
+  /landing              → LandingPage
+  /auth                 → AuthForm (login/signup)
+  /live/:teacherId      → LiveBroadcast (no auth required)
+
+Protected routes are enforced by DashboardLayout:
+  - Checks if user is authenticated
+  - Checks if user's role matches the allowedRole prop
+  - Redirects to the correct dashboard if role mismatch
+  - Shows skeleton loading state while checking auth
+
+
+4. API INTEGRATION APPROACH
+================================================================
+
+All API calls go through a dedicated service layer:
+  - services/auth.service.js     → login, signup, logout, getCurrentUser, updateProfile
+  - services/content.service.js  → uploadContent, getMyContent, getAllContent, 
+                                    getPendingContent, updateContentStatus, deleteContent,
+                                    getLiveContent, getStats
+  - services/approval.service.js → getPendingContent, approveContent, rejectContent,
+                                    getApprovalStats
+
+NO direct Supabase calls are made inside components.
+
+Error handling pattern:
+  - Services throw errors on failure
+  - Components catch errors and display toast notifications
+  - Loading states are tracked per-component via useState
+
+The service layer is easily replaceable — swap Supabase calls with 
+any REST/GraphQL client without touching components.
+
+
+5. STATE MANAGEMENT APPROACH
+================================================================
+
+- Global state: React Context (AuthContext) for user/auth only
+- Local state: useState for component-specific data (content lists, filters, etc.)
+- No external state library (Redux, Zustand) needed — app complexity doesn't warrant it
+- Form state: React Hook Form with Zod validation
+- Server state: Fetched on mount via useEffect, refetched after mutations
+
+Design principles:
+  - Keep state minimal and close to where it's used
+  - Avoid prop drilling via Context for cross-cutting concerns
+  - Derive computed values (filtered lists, stats) instead of storing duplicates
+
+
+6. ASSUMPTIONS
+================================================================
+
+- Supabase is the backend — auth, database, and file storage
+- Row Level Security (RLS) enforces authorization server-side
+- File uploads are limited to images (JPG, PNG, GIF) with 10MB max
+- Content rotation on the live page uses client-side interval timers
+- The live broadcast page polls for new content every 60 seconds
+- Teachers can only see/manage their own content
+- Principals can see all content and approve/reject any submission
+- Rejection requires a mandatory reason (enforced in UI and modal)
+- The app is a client-side SPA (Vite + React), not SSR
+- All authorization is enforced server-side via Supabase RLS policies

@@ -4,7 +4,7 @@ import { contentService } from '@/services/content.service';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { StatsCards } from '@/components/shared/StatsCards';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Users, ArrowRight, Play } from 'lucide-react';
+import { CheckCircle, Users, ArrowRight, Play, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -37,7 +37,7 @@ export default function PrincipalDashboard() {
           </div>
           <div className="flex gap-3">
             <Link to="/principal/pending">
-              <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2 shadow-lg shadow-indigo-100">
+              <Button className="bg-teal-500 hover:bg-teal-600 gap-2 shadow-lg shadow-teal-100">
                 <CheckCircle className="h-4 w-4" /> Review Pending
               </Button>
             </Link>
@@ -50,7 +50,7 @@ export default function PrincipalDashboard() {
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-bold text-slate-900">Recent Overview</h3>
-              <Link to="/principal/content" className="text-xs font-semibold text-indigo-600 hover:underline">
+              <Link to="/principal/content" className="text-xs font-semibold text-teal-600 hover:underline">
                 View All
               </Link>
             </div>
@@ -67,7 +67,7 @@ export default function PrincipalDashboard() {
                   </div>
                 </div>
                 <Link to="/principal/pending">
-                  <Button variant="ghost" size="sm" className="h-8 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                  <Button variant="ghost" size="sm" className="h-8 text-teal-600 hover:text-teal-700 hover:bg-teal-50">
                     Review <ArrowRight className="h-3 w-3 ml-1" />
                   </Button>
                 </Link>
@@ -75,7 +75,7 @@ export default function PrincipalDashboard() {
 
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                  <div className="p-2 bg-teal-100 text-teal-600 rounded-lg">
                     <Users className="h-5 w-5" />
                   </div>
                   <div>
@@ -84,7 +84,7 @@ export default function PrincipalDashboard() {
                   </div>
                 </div>
                 <Link to="/principal/content">
-                  <Button variant="ghost" size="sm" className="h-8 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                  <Button variant="ghost" size="sm" className="h-8 text-teal-600 hover:text-teal-700 hover:bg-teal-50">
                     Explore <ArrowRight className="h-3 w-3 ml-1" />
                   </Button>
                 </Link>
@@ -92,19 +92,19 @@ export default function PrincipalDashboard() {
             </div>
           </div>
 
-          <div className="bg-indigo-600 p-8 rounded-3xl shadow-xl shadow-indigo-100 flex flex-col justify-between text-white relative overflow-hidden group">
-            <div className="absolute -right-8 -top-8 bg-indigo-500 h-40 w-40 rounded-full transition-transform group-hover:scale-110 duration-700" />
+          <div className="bg-teal-500 p-8 rounded-3xl shadow-xl shadow-teal-100 flex flex-col justify-between text-white relative overflow-hidden group">
+            <div className="absolute -right-8 -top-8 bg-teal-400 h-40 w-40 rounded-full transition-transform group-hover:scale-110 duration-700" />
             <div className="relative z-10">
               <div className="h-12 w-12 bg-white/20 rounded-2xl backdrop-blur-md flex items-center justify-center mb-6">
                 <Play className="h-6 w-6 text-white fill-white" />
               </div>
               <h3 className="text-2xl font-bold mb-2">Public Broadcast</h3>
-              <p className="text-indigo-100 text-sm max-w-[200px]">
+              <p className="text-teal-100 text-sm max-w-[200px]">
                 Monitor what students are seeing right now across all subjects.
               </p>
             </div>
             <div className="relative z-10 pt-8">
-              <Button variant="secondary" className="w-full bg-white text-indigo-600 hover:bg-indigo-50 font-bold py-6 rounded-xl" asChild>
+              <Button variant="secondary" className="w-full bg-white text-teal-600 hover:bg-teal-50 font-bold py-6 rounded-xl" asChild>
                 <Link to="/live/all" target="_blank">View Live Feed</Link>
               </Button>
             </div>
@@ -112,25 +112,5 @@ export default function PrincipalDashboard() {
         </div>
       </div>
     </DashboardLayout>
-  );
-}
-
-function Clock({ className }) {
-  return (
-    <svg 
-      className={className} 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
   );
 }

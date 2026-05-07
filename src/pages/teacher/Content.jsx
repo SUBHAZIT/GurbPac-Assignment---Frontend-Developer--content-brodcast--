@@ -70,7 +70,7 @@ export default function TeacherContent() {
             <p className="text-slate-500 mt-1">Manage and track your broadcast submissions.</p>
           </div>
           <Link to="/teacher/upload">
-            <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2">
+            <Button className="bg-teal-500 hover:bg-teal-600 gap-2">
               <Plus className="h-4 w-4" /> New Submission
             </Button>
           </Link>
@@ -83,7 +83,7 @@ export default function TeacherContent() {
               <input 
                 type="text" 
                 placeholder="Search by title or subject..." 
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -162,7 +162,7 @@ export default function TeacherContent() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" className="hover:text-indigo-600 hover:bg-indigo-50" asChild>
+                      <Button variant="ghost" size="icon" className="hover:text-teal-600 hover:bg-teal-50" asChild>
                         <a href={item.file_url} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="h-4 w-4" />
                         </a>

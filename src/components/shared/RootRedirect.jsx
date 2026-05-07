@@ -14,8 +14,8 @@ export default function RootRedirect() {
       return;
     }
 
-    // Redirect based on role
-    const role = user.user_metadata?.role || 'student';
+    // Redirect based on profile role
+    const role = user.profile?.role;
     if (role === 'teacher') {
       navigate('/teacher/dashboard');
     } else if (role === 'principal') {
@@ -28,7 +28,7 @@ export default function RootRedirect() {
   return (
     <div className="h-screen w-full flex items-center justify-center bg-slate-50">
       <div className="flex flex-col items-center gap-4">
-        <div className="h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="h-12 w-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
         <p className="text-slate-500 font-medium animate-pulse">Redirecting you...</p>
       </div>
     </div>
