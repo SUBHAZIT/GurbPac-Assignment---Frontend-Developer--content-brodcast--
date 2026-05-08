@@ -20,8 +20,6 @@ export default function PrincipalDashboard() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        // Also trigger auto-expire on dashboard load
-        await contentService.autoExpireBroadcasts();
         const data = await contentService.getStats('principal');
         setStats(data);
       } catch (error) {
@@ -29,6 +27,8 @@ export default function PrincipalDashboard() {
       } finally {
         setLoading(false);
       }
+      // Auto-expire silently (don't block dashboard)
+      try { await contentService.autoExpireBroadcasts(); } catch {}
     }
     fetchStats();
   }, []);

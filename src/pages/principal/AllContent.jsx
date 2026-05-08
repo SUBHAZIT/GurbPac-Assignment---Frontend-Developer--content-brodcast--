@@ -71,14 +71,14 @@ export default function PrincipalAllContent() {
     return () => clearTimeout(timer);
   }, [fetchAll]);
 
-  // Auto-expire check on page load
+  // Auto-expire check on page load (silent fail if migration not applied)
   useEffect(() => {
     contentService.autoExpireBroadcasts().then(expired => {
-      if (expired.length > 0) {
+      if (expired && expired.length > 0) {
         toast.info(`${expired.length} broadcast(s) auto-expired`);
         fetchAll();
       }
-    });
+    }).catch(() => {});
   }, []);
 
   const handleAction = (item, mode) => {
