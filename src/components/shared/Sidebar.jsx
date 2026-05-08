@@ -24,6 +24,7 @@ export function Sidebar({ onClose }) {
   const { user, logout } = useAuth();
   const role = user?.profile?.role;
 
+  const teacherLinks = [
     { name: 'Dashboard', href: '/teacher/dashboard', icon: LayoutDashboard },
     { name: 'Upload Content', href: '/teacher/upload', icon: Upload },
     { name: 'My Content', href: '/teacher/content', icon: FileText },
