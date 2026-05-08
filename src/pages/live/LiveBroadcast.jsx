@@ -78,9 +78,10 @@ export default function LiveBroadcast() {
   // Fetch live content — refreshes every 15s for timely auto-stop
   useEffect(() => {
     async function fetchLive() {
+      // Auto-expire silently (don't block content fetch)
+      try { await contentService.autoExpireBroadcasts(); } catch {}
+
       try {
-        // Also trigger server-side auto-expire
-        await contentService.autoExpireBroadcasts();
         const data = await contentService.getLiveContent(teacherId);
         setContent(prevContent => {
           // If the current index would be out of bounds with new data, reset to 0

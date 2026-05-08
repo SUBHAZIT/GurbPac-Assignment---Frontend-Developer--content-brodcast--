@@ -93,10 +93,10 @@ export default function BroadcastHistory() {
       const data = await contentService.getBroadcastHistory({ 
         action: actionFilter 
       });
-      setHistory(data);
+      setHistory(data || []);
     } catch (error) {
-      toast.error('Failed to fetch broadcast history');
-      console.error(error);
+      console.error('Broadcast history fetch error:', error);
+      setHistory([]);
     } finally {
       setLoading(false);
     }
