@@ -90,11 +90,15 @@ export default function TeacherContent() {
 
     // Check if live
     const now = new Date();
+    const hasTimes = item.start_time && item.end_time;
+    const isWithinWindow = hasTimes 
+      ? (new Date(item.start_time) <= now && new Date(item.end_time) >= now)
+      : true; // Legacy content is always live if approved and broadcasting
+
     const isLive = item.status === 'approved'
       && item.is_broadcasting !== false
-      && item.start_time && item.end_time
-      && new Date(item.start_time) <= now
-      && new Date(item.end_time) >= now;
+      && !item.is_deleted
+      && isWithinWindow;
 
     if (isLive) {
       return (
@@ -173,7 +177,8 @@ export default function TeacherContent() {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+
           <div className="p-4 border-b border-slate-100 flex items-center gap-3">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -197,13 +202,14 @@ export default function TeacherContent() {
             )}
           </div>
 
-          <Table>
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader className="bg-slate-50/50">
               <TableRow>
-                <TableHead className="font-semibold text-slate-700">Content</TableHead>
-                <TableHead className="font-semibold text-slate-700">Subject</TableHead>
-                <TableHead className="font-semibold text-slate-700">Schedule</TableHead>
-                <TableHead className="font-semibold text-slate-700">Status</TableHead>
+                <TableHead className="font-semibold text-slate-700 min-w-[200px]">Content</TableHead>
+                <TableHead className="font-semibold text-slate-700 min-w-[120px]">Subject</TableHead>
+                <TableHead className="font-semibold text-slate-700 min-w-[150px]">Schedule</TableHead>
+                <TableHead className="font-semibold text-slate-700 min-w-[220px]">Status</TableHead>
                 <TableHead className="text-right font-semibold text-slate-700">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -257,9 +263,9 @@ export default function TeacherContent() {
                             </div>
                           )}
                         </div>
-                        <div>
-                          <p className={`font-semibold ${item.is_deleted ? 'text-slate-400 line-through' : 'text-slate-900'}`}>{item.title}</p>
-                          <p className="text-xs text-slate-500 truncate max-w-[200px]">{item.description || 'No description'}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className={`font-semibold truncate ${item.is_deleted ? 'text-slate-400 line-through' : 'text-slate-900'}`} title={item.title}>{item.title}</p>
+                          <p className="text-xs text-slate-500 truncate" title={item.description}>{item.description || 'No description'}</p>
                         </div>
                       </div>
                     </TableCell>
@@ -268,12 +274,18 @@ export default function TeacherContent() {
                     </TableCell>
                     <TableCell>
                       <div className="text-xs space-y-1">
-                        <p className="text-slate-600 flex items-center gap-1">
-                          <span className="font-bold text-[10px] uppercase text-slate-400">Start:</span> {format(new Date(item.start_time), 'MMM d, HH:mm')}
-                        </p>
-                        <p className="text-slate-600 flex items-center gap-1">
-                          <span className="font-bold text-[10px] uppercase text-slate-400">End:</span> {format(new Date(item.end_time), 'MMM d, HH:mm')}
-                        </p>
+                        {item.start_time ? (
+                          <>
+                            <p className="text-slate-600 flex items-center gap-1">
+                              <span className="font-bold text-[10px] uppercase text-slate-400">Start:</span> {format(new Date(item.start_time), 'MMM d, HH:mm')}
+                            </p>
+                            <p className="text-slate-600 flex items-center gap-1">
+                              <span className="font-bold text-[10px] uppercase text-slate-400">End:</span> {format(new Date(item.end_time), 'MMM d, HH:mm')}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-slate-400 italic">No schedule set (Always Live)</p>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -282,7 +294,8 @@ export default function TeacherContent() {
                         
                         {/* Rejection reason */}
                         {item.status === 'rejected' && !item.is_deleted && (
-                          <div className="flex items-start gap-1.5 p-2 bg-rose-50 rounded-lg text-[11px] text-rose-700 border border-rose-100 max-w-[220px]">
+                          <div className="flex items-start gap-1.5 p-2 bg-rose-50 rounded-lg text-[11px] text-rose-700 border border-rose-100 w-full max-w-[280px]">
+
                             <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
                             <p><span className="font-bold">Reason:</span> {item.rejection_reason || 'No reason provided'}</p>
                           </div>
@@ -290,7 +303,8 @@ export default function TeacherContent() {
 
                         {/* Deletion reason — shown prominently */}
                         {item.is_deleted && (
-                          <div className="flex items-start gap-1.5 p-2.5 bg-red-50 rounded-lg text-[11px] text-red-700 border border-red-200 max-w-[260px]">
+                          <div className="flex items-start gap-1.5 p-2.5 bg-red-50 rounded-lg text-[11px] text-red-700 border border-red-200 w-full max-w-[280px]">
+
                             <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-red-500" />
                             <div>
                               <p className="font-bold mb-0.5">Deletion Reason:</p>
@@ -306,7 +320,8 @@ export default function TeacherContent() {
 
                         {/* Stop reason */}
                         {!item.is_deleted && item.is_broadcasting === false && item.stop_reason && item.status === 'approved' && (
-                          <div className="flex items-start gap-1.5 p-2 bg-amber-50 rounded-lg text-[11px] text-amber-700 border border-amber-200 max-w-[220px]">
+                          <div className="flex items-start gap-1.5 p-2 bg-amber-50 rounded-lg text-[11px] text-amber-700 border border-amber-200 w-full max-w-[280px]">
+
                             <StopCircle className="h-3 w-3 shrink-0 mt-0.5 text-amber-500" />
                             <div>
                               <p className="font-bold mb-0.5">Stop Reason:</p>
@@ -342,6 +357,7 @@ export default function TeacherContent() {
               )}
             </TableBody>
           </Table>
+          </div>
         </div>
       </div>
     </DashboardLayout>

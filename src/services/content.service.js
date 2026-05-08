@@ -122,9 +122,19 @@ export const contentService = {
   },
 
   async updateContentStatus(id, status, reason = null) {
+    const updateData = { status, rejection_reason: reason };
+    
+    // If approving, also ensure it's marked as broadcasting and not deleted
+    if (status === 'approved' && (await hasNewColumns())) {
+      updateData.is_broadcasting = true;
+      updateData.is_deleted = false;
+      updateData.stopped_at = null;
+      updateData.stop_reason = null;
+    }
+
     const { data, error } = await supabase
       .from('content')
-      .update({ status, rejection_reason: reason })
+      .update(updateData)
       .eq('id', id)
       .select();
 
@@ -297,9 +307,10 @@ export const contentService = {
 
     // Apply new column filters only if migration has been run
     if (newCols) {
+      // Use OR to allow NULLs for legacy compatibility
       query = query
-        .eq('is_broadcasting', true)
-        .eq('is_deleted', false);
+        .or('is_broadcasting.eq.true,is_broadcasting.is.null')
+        .or('is_deleted.eq.false,is_deleted.is.null');
     }
 
     // Filter by time window for auto-stop, but allow nulls for legacy content
