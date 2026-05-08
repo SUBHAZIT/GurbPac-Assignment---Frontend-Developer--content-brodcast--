@@ -51,6 +51,7 @@ export default function LiveBroadcast() {
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState(0);
   const [autoRotate, setAutoRotate] = useState(true);
+  const [hasStarted, setHasStarted] = useState(false);
 
   const [viewAccess, setViewAccess] = useState({ allowed: true, viewsUsed: 0, limit: 10 });
   const [showPaywall, setShowPaywall] = useState(false);
@@ -63,17 +64,7 @@ export default function LiveBroadcast() {
   const chatEndRef = useRef(null);
   const chatEndRefMobile = useRef(null);
   const watchTimerRef = useRef(null);
-
-  // Track view access for anon
-  useEffect(() => {
-    async function checkAccess() {
-      if (user) return;
-      const access = await viewerService.checkViewAccess();
-      setViewAccess(access);
-      if (!access.allowed) setShowPaywall(true);
-    }
-    checkAccess();
-  }, [user]);
+  const videoRef = useRef(null);
 
   // Fetch live content — refreshes every 15s for timely auto-stop
   useEffect(() => {
@@ -84,7 +75,6 @@ export default function LiveBroadcast() {
       try {
         const data = await contentService.getLiveContent(teacherId);
         setContent(prevContent => {
-          // If the current index would be out of bounds with new data, reset to 0
           if (data.length > 0 && currentIndex >= data.length) {
             setCurrentIndex(0);
             setTimeLeft(data[0].rotation_duration || 10);
@@ -98,7 +88,7 @@ export default function LiveBroadcast() {
       finally { setLoading(false); }
     }
     fetchLive();
-    const interval = setInterval(fetchLive, 15000); // Check every 15s for timely expiration
+    const interval = setInterval(fetchLive, 15000); 
     return () => clearInterval(interval);
   }, [teacherId]);
 
@@ -136,7 +126,6 @@ export default function LiveBroadcast() {
         viewerService.checkViewAccess().then(a => { setViewAccess(a); if (!a.allowed) setShowPaywall(true); })
       );
     } else {
-      // Start watch timer
       watchTimerRef.current = setInterval(() => {
         engagementService.recordWatch(activeItem.id, user.id, 10).catch(() => { });
       }, 10000);
@@ -151,22 +140,24 @@ export default function LiveBroadcast() {
 
   // Auto-rotation
   useEffect(() => {
-    if (content.length <= 1 || showPaywall || !autoRotate) return;
+    if (content.length <= 1 || showPaywall || !autoRotate || !hasStarted) return;
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
-          setCurrentIndex(curr => (curr + 1) % content.length);
-          return content[(currentIndex + 1) % content.length].rotation_duration || 10;
+          const nextIndex = (currentIndex + 1) % content.length;
+          setCurrentIndex(nextIndex);
+          return content[nextIndex].rotation_duration || 10;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [content, currentIndex, showPaywall, autoRotate]);
+  }, [content, currentIndex, showPaywall, autoRotate, hasStarted]);
 
   function selectContent(index) {
     setCurrentIndex(index);
     setAutoRotate(false);
+    setHasStarted(true); 
     setTimeLeft(content[index].rotation_duration || 10);
   }
 
@@ -224,266 +215,360 @@ export default function LiveBroadcast() {
 
   const activeItem = content[currentIndex];
 
-  return (
-    <div className="h-screen bg-slate-950 text-white flex flex-col overflow-hidden">
-
-      {/* Top Bar */}
-      <div className="h-12 px-4 flex items-center justify-between border-b border-white/5 bg-black/60 backdrop-blur-xl flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <div className="h-2 w-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-rose-500">Live</span>
+  function ContentRenderer({ item }) {
+    if (!item) return null;
+    const ft = item.file_type;
+    
+    if (!hasStarted && (ft === 'video' || ft === 'audio')) {
+      return (
+        <div className="w-full h-full relative group cursor-pointer overflow-hidden" onClick={() => setHasStarted(true)}>
+          <div 
+            className="absolute inset-0 bg-cover bg-center blur-2xl opacity-30 scale-110"
+            style={{ backgroundImage: `url(${item.file_url})` }}
+          />
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+            <div className="relative">
+              <div className="absolute inset-0 bg-teal-500 rounded-full blur-2xl opacity-40 group-hover:opacity-60 transition-opacity animate-pulse" />
+              <div className="relative h-24 w-24 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white shadow-2xl group-hover:scale-110 transition-transform duration-500">
+                <Play className="h-10 w-10 fill-white ml-1" />
+              </div>
+            </div>
+            <div className="mt-8 text-center space-y-2">
+              <h3 className="text-2xl font-bold text-white tracking-tight">{item.title}</h3>
+              <p className="text-slate-400 font-medium">Click to start broadcast</p>
+            </div>
           </div>
-          <div className="h-3 w-px bg-white/10" />
-          <span className="text-[10px] font-semibold text-slate-500 hidden sm:inline">
-            {teacherId === 'all' ? 'All Broadcasts' : 'Teacher Feed'} · {content.length} items
-          </span>
+          <div className="absolute top-6 left-6 z-20">
+            <div className="bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-2 shadow-lg shadow-rose-500/20">
+              <div className="h-1.5 w-1.5 bg-white rounded-full animate-ping" />
+              CURRENTLY STREAMING
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {!user && (
-            <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-full border border-white/5 text-[10px]">
-              <Eye className="h-3 w-3 text-teal-400" />
-              <span className="text-teal-400 font-semibold">{viewAccess.limit - viewAccess.viewsUsed} free</span>
+      );
+    }
+
+    if (ft === 'video') return (
+      <video 
+        ref={videoRef}
+        src={item.file_url} 
+        controls 
+        autoPlay 
+        className="w-full h-full object-contain bg-black shadow-2xl" 
+        onEnded={() => {
+          if (autoRotate && content.length > 1) {
+            setCurrentIndex(curr => (curr + 1) % content.length);
+          }
+        }}
+      />
+    );
+
+    if (ft === 'pdf') return <iframe src={item.file_url} className="w-full h-full border-0 bg-white" title={item.title} />;
+
+    if (ft === 'audio') return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 gap-8">
+        <div className="relative">
+          <div className="absolute inset-0 bg-teal-500/20 rounded-full blur-3xl animate-pulse" />
+          <div className="h-40 w-40 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-center shadow-2xl">
+            <Music className="h-20 w-20 text-teal-400" />
+          </div>
+        </div>
+        <div className="text-center space-y-2">
+          <p className="text-white text-2xl font-bold tracking-tight">{item.title}</p>
+          <p className="text-slate-400 font-medium">{item.subject}</p>
+        </div>
+        <audio src={item.file_url} controls autoPlay className="w-80 h-10 shadow-lg" />
+      </div>
+    );
+
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-black relative">
+        <img src={item.file_url} alt={item.title} className="w-full h-full object-contain" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen bg-slate-950 text-white flex flex-col overflow-hidden font-sans">
+      <header className="h-14 px-6 flex items-center justify-between border-b border-white/5 bg-slate-900/40 backdrop-blur-xl z-50">
+        <div className="flex items-center gap-6">
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="h-8 w-8 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-lg shadow-teal-500/10 group-hover:rotate-6 transition-transform">
+              <Radio className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-lg font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">StreamPro</span>
+          </Link>
+          <div className="h-4 w-px bg-white/10 hidden md:block" />
+          <div className="hidden md:flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+              <span className="text-xs font-bold uppercase tracking-widest text-rose-500">Live Broadcast</span>
+            </div>
+            <span className="text-xs font-medium text-slate-500">
+              {teacherId === 'all' ? 'Institution Feed' : 'Teacher Stream'} · {content.length} Broadcasts
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          {!user ? (
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10 text-[11px] font-semibold">
+                <Eye className="h-3.5 w-3.5 text-teal-400" />
+                <span className="text-slate-400"><strong className="text-teal-400">{viewAccess.limit - viewAccess.viewsUsed}</strong> previews left</span>
+              </div>
+              <Link to="/auth">
+                <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 text-white border-none rounded-lg text-xs font-bold px-4 h-9">Sign In</Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5">
+                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span className="text-[11px] font-bold text-slate-300 capitalize">{user.role}</span>
+              </div>
+              <Button variant="ghost" size="sm" onClick={logout} className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 h-9 rounded-lg gap-2 text-xs font-bold">
+                <LogOut className="h-3.5 w-3.5" /> Logout
+              </Button>
             </div>
           )}
-          {content.length > 1 && (
-            <button onClick={() => setAutoRotate(!autoRotate)}
-              className={`text-[10px] font-semibold px-2 py-1 rounded-full border transition-all ${autoRotate ? 'bg-teal-500/10 border-teal-500/20 text-teal-400' : 'bg-white/5 border-white/5 text-white/30'}`}
-            >
-              {autoRotate ? `Auto ${timeLeft}s` : 'Manual'}
-            </button>
-          )}
-          {user && (
-            <button onClick={logout}
-              className="flex items-center gap-1 text-[10px] font-semibold text-white/30 hover:text-rose-400 bg-white/5 hover:bg-rose-500/10 px-2 py-1 rounded-full border border-white/5 hover:border-rose-500/20 transition-all"
-            ><LogOut className="h-3 w-3" /> Logout</button>
-          )}
         </div>
-      </div>
+      </header>
 
-      {/* Main Area */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-        {/* Content + Thumbnails */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto lg:overflow-hidden pb-20 lg:pb-0">
-          {/* Media (Sticky 16:9 on mobile) */}
-          <div className="relative bg-black flex-none aspect-video lg:aspect-auto lg:flex-1 lg:min-h-0 sticky lg:relative top-0 z-40 shadow-xl lg:shadow-none">
+      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+        <section className="flex-1 flex flex-col min-w-0 bg-black relative">
+          <div className="relative flex-1 min-h-0 flex items-center justify-center group overflow-hidden">
             <AnimatePresence mode="wait">
-              <motion.div key={activeItem.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} className="absolute inset-0">
+              <motion.div 
+                key={activeItem.id} 
+                initial={{ opacity: 0, scale: 1.02 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                exit={{ opacity: 0, scale: 0.98 }} 
+                transition={{ duration: 0.5, ease: "easeOut" }} 
+                className="absolute inset-0"
+              >
                 <ContentRenderer item={activeItem} />
-                {activeItem.file_type !== 'video' && activeItem.file_type !== 'pdf' && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 pointer-events-none" />
-                )}
               </motion.div>
             </AnimatePresence>
-            {/* Prev/Next arrows for manual nav */}
+
             {content.length > 1 && (
               <>
-                <button onClick={() => selectContent((currentIndex - 1 + content.length) % content.length)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 bg-black/50 backdrop-blur-sm border border-white/10 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-black/80 transition-all z-10">
-                  <ChevronLeft className="h-5 w-5" />
+                <button 
+                  onClick={() => selectContent((currentIndex - 1 + content.length) % content.length)}
+                  className="absolute left-6 top-1/2 -translate-y-1/2 h-14 w-14 bg-black/40 hover:bg-black/80 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:scale-110 transition-all z-30 opacity-0 group-hover:opacity-100 shadow-2xl"
+                >
+                  <ChevronLeft className="h-8 w-8" />
                 </button>
-                <button onClick={() => selectContent((currentIndex + 1) % content.length)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 bg-black/50 backdrop-blur-sm border border-white/10 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-black/80 transition-all z-10">
-                  <ChevronRight className="h-5 w-5" />
+                <button 
+                  onClick={() => selectContent((currentIndex + 1) % content.length)}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 h-14 w-14 bg-black/40 hover:bg-black/80 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:scale-110 transition-all z-30 opacity-0 group-hover:opacity-100 shadow-2xl"
+                >
+                  <ChevronRight className="h-8 w-8" />
                 </button>
               </>
             )}
+
+            <div className="absolute top-6 right-6 z-30 flex flex-col items-end gap-3">
+              {autoRotate && hasStarted && (
+                <div className="bg-black/60 backdrop-blur-md border border-white/10 rounded-xl px-4 py-2 flex flex-col items-end shadow-2xl">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Next Content In</span>
+                  <span className="text-xl font-black text-teal-400 tabular-nums">{timeLeft}s</span>
+                </div>
+              )}
+            </div>
           </div>
 
-            {/* Bottom: Info + Thumbnail Strip */}
-          <div className="flex-shrink-0 bg-slate-950 lg:bg-slate-900/80 lg:backdrop-blur-sm lg:border-t lg:border-white/5">
-            {/* Info Row */}
-            <div className="px-4 py-4 lg:py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/10 lg:border-none">
-              <div className="flex-1 min-w-0 space-y-2 lg:space-y-0.5">
-                <h2 className="text-xl lg:text-base font-bold lg:truncate text-white leading-tight">{activeItem.title}</h2>
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-teal-500 text-white border-none text-[10px] font-bold px-2 py-0.5 lg:py-0 rounded-full">{activeItem.subject}</Badge>
-                  {getTypeIcon(activeItem.file_type) && (
-                    <Badge variant="outline" className="border-white/10 text-white/40 text-[10px] gap-1 capitalize py-0.5 lg:py-0">{getTypeIcon(activeItem.file_type)} {activeItem.file_type}</Badge>
-                  )}
+          <div className="bg-slate-900/60 backdrop-blur-xl border-t border-white/5 p-6 lg:p-8">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+              <div className="flex-1 space-y-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Badge className="bg-rose-500 text-white font-black text-[10px] tracking-widest px-3 py-1 rounded-md shadow-lg shadow-rose-500/20">LIVE</Badge>
+                  <Badge variant="outline" className="border-teal-500/30 text-teal-400 bg-teal-500/5 font-bold px-3 py-1 rounded-md">{activeItem.subject}</Badge>
+                </div>
+                <h1 className="text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight">{activeItem.title}</h1>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 group cursor-pointer">
+                    <div className="h-10 w-10 bg-gradient-to-br from-teal-500/20 to-emerald-500/20 rounded-full flex items-center justify-center border border-teal-500/20 text-teal-400 group-hover:scale-110 transition-transform">
+                      <User className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">{activeItem.profiles?.full_name || 'Broadcast Teacher'}</p>
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Verified Educator</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 lg:gap-2 flex-shrink-0">
-                <button onClick={handleLike} disabled={!user}
-                  className={`flex items-center justify-center gap-1.5 px-4 py-2 lg:px-3 lg:py-1.5 rounded-full border text-sm lg:text-xs font-semibold transition-all flex-1 lg:flex-none ${likeStatus.hasLiked ? 'bg-rose-500/20 border-rose-500/30 text-rose-400' : 'bg-white/5 border-white/10 text-white/60 hover:text-rose-400'} ${!user ? 'opacity-40 cursor-not-allowed' : ''}`}>
-                  <Heart className={`h-4 w-4 lg:h-3.5 lg:w-3.5 ${likeStatus.hasLiked ? 'fill-rose-400' : ''}`} />
+
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={handleLike} 
+                  disabled={!user}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl border-2 font-bold transition-all ${likeStatus.hasLiked ? 'bg-rose-500 border-rose-600 text-white shadow-lg shadow-rose-500/20' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/20 hover:text-white'} ${!user ? 'opacity-40 cursor-not-allowed' : ''}`}
+                >
+                  <Heart className={`h-5 w-5 ${likeStatus.hasLiked ? 'fill-white' : ''}`} />
                   {likeStatus.count}
                 </button>
-                <button onClick={() => {
-                  if (window.innerWidth < 1024) {
-                    document.getElementById('mobile-chat')?.scrollIntoView({ behavior: 'smooth' });
-                  } else {
-                    setShowChat(!showChat);
-                  }
-                }}
-                  className="flex items-center justify-center gap-1.5 px-4 py-2 lg:px-3 lg:py-1.5 rounded-full bg-white/5 border border-white/10 text-white flex-1 lg:flex-none text-sm lg:text-xs font-semibold hover:bg-white/10 transition-colors">
-                  <MessageCircle className="h-4 w-4 lg:h-3.5 lg:w-3.5 text-teal-400" /> Live Chat ({comments.length})
+                <button 
+                  onClick={() => setShowChat(!showChat)}
+                  className="flex lg:hidden items-center gap-2 px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white rounded-xl font-bold shadow-lg shadow-teal-500/20 transition-all"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                  Chat
                 </button>
               </div>
             </div>
+          </div>
+        </section>
 
-            {/* Thumbnail Strip / Up Next */}
-            {content.length > 1 && (
-              <div className="px-4 py-4 lg:pb-3 lg:pt-0">
-                <h3 className="text-white font-bold text-lg mb-3 lg:hidden">Up Next</h3>
-                <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-2 overflow-x-auto lg:scrollbar-hide pb-1">
-                  {content.map((item, i) => (
-                    <button key={item.id} onClick={() => selectContent(i)}
-                      className={`flex flex-row lg:flex-col lg:flex-shrink-0 relative rounded-xl lg:rounded-lg overflow-hidden border-2 lg:border transition-all text-left bg-white/5 lg:bg-transparent ${i === currentIndex ? 'border-teal-500 lg:shadow-lg lg:shadow-teal-500/20 bg-white/10' : 'border-transparent lg:border-white/10 hover:border-white/30 hover:bg-white/10 opacity-100 lg:opacity-60 lg:hover:opacity-100'}`}
-                    >
-                      <div className="w-32 lg:w-[120px] h-20 lg:h-[68px] flex-shrink-0 relative bg-slate-800">
-                        {getThumbnail(item) ? (
-                          <img src={item.file_url} alt={item.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex flex-col items-center justify-center gap-1">
-                            {item.file_type === 'video' && <Film className="h-5 w-5 text-purple-400" />}
-                            {item.file_type === 'pdf' && <FileText className="h-5 w-5 text-rose-400" />}
-                            {item.file_type === 'audio' && <Music className="h-5 w-5 text-amber-400" />}
-                            {(!item.file_type || item.file_type === 'other') && <LayoutGrid className="h-5 w-5 text-slate-500" />}
-                          </div>
-                        )}
-                        {i === currentIndex && (
-                          <div className="absolute top-1.5 right-1.5 lg:top-1 lg:right-1 bg-black/50 p-1 rounded-full backdrop-blur-sm">
-                            <div className="h-1.5 w-1.5 bg-teal-400 rounded-full animate-pulse" />
-                          </div>
-                        )}
-                        {/* Overlay label on desktop only */}
-                        <div className="hidden lg:block absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-1.5 py-1">
-                          <p className="text-[8px] font-bold text-white truncate">{item.title}</p>
-                          <p className="text-[7px] text-white/40">{item.subject}</p>
-                        </div>
-                      </div>
+        <aside className={`fixed lg:relative inset-0 lg:inset-auto z-50 lg:z-0 lg:w-[420px] bg-slate-900 border-l border-white/5 flex flex-col transition-transform duration-500 ease-in-out ${showChat ? 'translate-x-0' : 'translate-x-full lg:translate-x-0 lg:hidden'}`}>
+          <div className="lg:hidden h-14 px-4 flex items-center justify-between border-b border-white/10 bg-slate-800">
+            <span className="font-bold">Live Interactions</span>
+            <Button variant="ghost" size="icon" onClick={() => setShowChat(false)}><X className="h-6 w-6" /></Button>
+          </div>
 
-                      {/* Info next to thumbnail on mobile */}
-                      <div className="p-3 lg:hidden flex-1 min-w-0 flex flex-col justify-center">
-                        <p className="text-sm font-bold text-white truncate">{item.title}</p>
-                        <p className="text-xs text-slate-400 mt-1">{item.subject}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Inline Mobile Chat */}
-            <div id="mobile-chat" className="lg:hidden mt-4 pb-4 border-t border-white/5 flex flex-col flex-shrink-0">
-              <div className="h-10 px-4 flex items-center justify-between border-b border-white/5 flex-shrink-0">
-                <div className="flex items-center gap-1.5">
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/5">
+                <div className="flex items-center gap-2">
                   <MessageCircle className="h-4 w-4 text-teal-400" />
-                  <span className="text-sm font-bold text-white">Live Chat</span>
-                  <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded-full text-white/40">{comments.length}</span>
+                  <span className="text-sm font-black tracking-widest uppercase">Live Chat</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Eye className="h-3 w-3 text-slate-500" />
+                  <span className="text-[10px] font-bold text-slate-500">{comments.length * 3 + 4} Watching</span>
                 </div>
               </div>
-              <div className="overflow-y-auto px-4 py-3 space-y-3 min-h-[300px] max-h-[400px]">
+
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10">
                 {comments.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-32 text-white/20 text-center">
-                    <MessageCircle className="h-8 w-8 mb-2" />
-                    <p className="text-xs font-medium">No comments yet</p>
+                  <div className="h-full flex flex-col items-center justify-center text-slate-600 text-center space-y-4 px-10">
+                    <div className="h-20 w-20 bg-white/5 rounded-full flex items-center justify-center"><MessageCircle className="h-10 w-10" /></div>
+                    <div>
+                      <p className="font-bold text-white">Join the Conversation</p>
+                      <p className="text-xs mt-1">Be the first to comment on this broadcast.</p>
+                    </div>
                   </div>
                 ) : (
                   comments.map((comment) => (
-                    <div key={comment.id} className="group flex gap-3">
-                      <div className="h-8 w-8 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400 text-xs font-bold flex-shrink-0">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={comment.id} className="group flex gap-4">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-teal-400 text-sm font-black shadow-lg border border-white/5 flex-shrink-0">
                         {comment.profiles?.full_name?.charAt(0)?.toUpperCase() || '?'}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-xs font-bold text-white/70 truncate">{comment.profiles?.full_name || 'User'}</span>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-black text-white/90 truncate">{comment.profiles?.full_name || 'Anonymous User'}</span>
                           {comment.profiles?.role && comment.profiles.role !== 'viewer' && (
-                            <Badge className="text-[9px] py-0 px-1.5 h-4 bg-teal-500/20 text-teal-400 border-none capitalize">{comment.profiles.role}</Badge>
+                            <Badge className="text-[8px] py-0 px-2 h-4 bg-teal-500 text-white border-none uppercase tracking-widest">{comment.profiles.role}</Badge>
                           )}
                         </div>
-                        <p className="text-xs text-white/80 leading-relaxed break-words">{comment.message}</p>
+                        <p className="text-xs text-slate-400 leading-relaxed break-words font-medium">{comment.message}</p>
                       </div>
                       {user?.id === comment.user_id && (
-                        <button onClick={() => handleDeleteComment(comment.id)} className="opacity-100 text-white/30 hover:text-rose-400 transition-all mt-1">
-                          <Trash2 className="h-3 w-3" />
+                        <button onClick={() => handleDeleteComment(comment.id)} className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-500 transition-all mt-1">
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       )}
-                    </div>
+                    </motion.div>
                   ))
                 )}
-                <div ref={chatEndRefMobile} />
+                <div ref={chatEndRef} />
               </div>
-              <div className="px-4 py-3 border-t border-white/5 flex-shrink-0">
+
+              <div className="p-6 border-t border-white/5 bg-black/20">
                 {user ? (
-                  <div className="flex gap-2">
-                    <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)}
+                  <div className="relative group">
+                    <input 
+                      type="text" 
+                      value={newComment} 
+                      onChange={(e) => setNewComment(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
-                      placeholder="Type a message..."
-                      className="flex-1 h-10 px-3 bg-white/5 border border-white/10 rounded-xl text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-teal-500/40" />
-                    <Button size="icon" onClick={handleSendComment} disabled={!newComment.trim() || sendingComment}
-                      className="h-10 w-10 bg-teal-500 hover:bg-teal-600 rounded-xl flex-shrink-0">
+                      placeholder="Send a message..."
+                      className="w-full h-12 pl-4 pr-12 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-teal-500/40 focus:ring-4 focus:ring-teal-500/10 transition-all" 
+                    />
+                    <button 
+                      onClick={handleSendComment} 
+                      disabled={!newComment.trim() || sendingComment}
+                      className="absolute right-2 top-2 h-8 w-8 bg-teal-500 hover:bg-teal-600 text-white rounded-lg flex items-center justify-center shadow-lg shadow-teal-500/20 disabled:opacity-50 transition-all"
+                    >
                       {sendingComment ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    </Button>
+                    </button>
                   </div>
                 ) : (
-                  <Link to="/auth"><button className="w-full h-10 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 text-xs font-bold transition-all"><User className="h-4 w-4" /> Sign in to comment</button></Link>
+                  <Link to="/auth">
+                    <Button className="w-full h-12 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-slate-400 gap-2 font-bold transition-all">
+                      <Lock className="h-4 w-4" /> Sign in to Chat
+                    </Button>
+                  </Link>
                 )}
               </div>
             </div>
 
-          </div>
-        </div>
-
-        {/* Desktop Chat Sidebar */}
-        <div className={`hidden lg:flex w-72 border-l border-white/5 bg-slate-900/40 flex-col flex-shrink-0 relative transition-transform duration-300 ${showChat ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 hidden'}`}>
-          <div className="h-10 px-3 flex items-center justify-between border-b border-white/5 flex-shrink-0">
-            <div className="flex items-center gap-1.5">
-              <MessageCircle className="h-3.5 w-3.5 text-teal-400" />
-              <span className="text-xs font-semibold">Live Chat</span>
-              <span className="text-[9px] bg-white/5 px-1.5 py-0.5 rounded-full text-white/30">{comments.length}</span>
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5">
-            {comments.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-white/20 text-center">
-                <MessageCircle className="h-7 w-7 mb-2" />
-                <p className="text-[10px] font-medium">No comments yet</p>
+            <div className="h-[280px] border-t border-white/5 flex flex-col flex-shrink-0 bg-slate-950">
+              <div className="px-6 py-4 flex items-center justify-between border-b border-white/5">
+                <div className="flex items-center gap-2">
+                  <LayoutGrid className="h-4 w-4 text-emerald-400" />
+                  <span className="text-xs font-black tracking-widest uppercase">Broadcast Playlist</span>
+                </div>
+                <span className="text-[10px] font-bold text-slate-500 uppercase">{currentIndex + 1} / {content.length}</span>
               </div>
-            ) : (
-              comments.map((comment) => (
-                <div key={comment.id} className="group flex gap-2">
-                  <div className="h-6 w-6 rounded-full bg-teal-500/20 flex items-center justify-center text-teal-400 text-[9px] font-bold flex-shrink-0 mt-0.5">
-                    {comment.profiles?.full_name?.charAt(0)?.toUpperCase() || '?'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="text-[10px] font-semibold text-white/70 truncate">{comment.profiles?.full_name || 'User'}</span>
-                      {comment.profiles?.role && comment.profiles.role !== 'viewer' && (
-                        <Badge className="text-[7px] py-0 px-1 h-3 bg-teal-500/20 text-teal-400 border-none capitalize">{comment.profiles.role}</Badge>
+              <div className="flex-1 overflow-x-auto p-4 flex gap-4 scrollbar-hide">
+                {content.map((item, i) => (
+                  <button 
+                    key={item.id} 
+                    onClick={() => selectContent(i)}
+                    className={`flex-shrink-0 w-[180px] group relative rounded-xl overflow-hidden border-2 transition-all ${i === currentIndex ? 'border-teal-500 scale-95' : 'border-transparent opacity-40 hover:opacity-100 hover:border-white/20'}`}
+                  >
+                    <div className="aspect-video bg-slate-800 relative">
+                      {item.file_type === 'image' ? (
+                        <img src={item.file_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                          <div className={`p-2 rounded-lg ${item.file_type === 'video' ? 'bg-purple-500/10 text-purple-400' : item.file_type === 'audio' ? 'bg-amber-500/10 text-amber-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                            {item.file_type === 'video' ? <Film className="h-6 w-6" /> : item.file_type === 'audio' ? <Music className="h-6 w-6" /> : <FileText className="h-6 w-6" />}
+                          </div>
+                        </div>
+                      )}
+                      {i === currentIndex && (
+                        <div className="absolute inset-0 bg-teal-500/20 flex items-center justify-center backdrop-blur-[2px]">
+                          <Play className="h-8 w-8 fill-teal-400 text-teal-400 animate-pulse" />
+                        </div>
                       )}
                     </div>
-                    <p className="text-[10px] text-white/50 leading-relaxed break-words">{comment.message}</p>
-                  </div>
-                  {user?.id === comment.user_id && (
-                    <button onClick={() => handleDeleteComment(comment.id)} className="opacity-0 group-hover:opacity-100 text-white/20 hover:text-rose-400 transition-all mt-1">
-                      <Trash2 className="h-2.5 w-2.5" />
-                    </button>
-                  )}
-                </div>
-              ))
-            )}
-            <div ref={chatEndRef} />
-          </div>
-          <div className="p-2.5 border-t border-white/5 flex-shrink-0">
-            {user ? (
-              <div className="flex gap-1.5">
-                <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
-                  placeholder="Type a message..."
-                  className="flex-1 h-8 px-2.5 bg-white/5 border border-white/10 rounded-lg text-[10px] text-white placeholder:text-white/20 focus:outline-none focus:border-teal-500/40" />
-                <Button size="icon" onClick={handleSendComment} disabled={!newComment.trim() || sendingComment}
-                  className="h-8 w-8 bg-teal-500 hover:bg-teal-600 rounded-lg flex-shrink-0">
-                  {sendingComment ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-                </Button>
+                    <div className="p-3 bg-slate-900 border-t border-white/5">
+                      <p className="text-[11px] font-bold text-white truncate mb-1">{item.title}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">{item.subject}</span>
+                        <span className="text-[9px] font-bold text-teal-500">{item.rotation_duration}s</span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
               </div>
-            ) : (
-              <Link to="/auth"><button className="w-full h-8 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/70 text-[10px] font-semibold transition-all"><User className="h-3 w-3" /> Sign in to comment</button></Link>
-            )}
+            </div>
           </div>
-        </div>
-      </div>
+        </aside>
+      </main>
     </div>
+  );
+}
+
+function X({ className }) {
+  return (
+    <svg 
+      className={className} 
+      xmlns="http://www.w3.org/2000/svg" 
+      width="24" 
+      height="24" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    >
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
   );
 }
