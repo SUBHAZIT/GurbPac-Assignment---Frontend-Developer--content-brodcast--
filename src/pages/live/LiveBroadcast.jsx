@@ -66,14 +66,16 @@ export default function LiveBroadcast() {
   const watchTimerRef = useRef(null);
   const videoRef = useRef(null);
 
-  // Fetch live content — refreshes every 15s for timely auto-stop
+  // Fetch live content
   useEffect(() => {
-    async function fetchLive() {
-      // Auto-expire silently (don't block content fetch)
-      try { await contentService.autoExpireBroadcasts(); } catch {}
-
+    async function fetchLiveContent() {
       try {
-        const data = await contentService.getLiveContent(teacherId);
+        setLoading(true);
+        // Auto-expire silently
+        try { await contentService.autoExpireBroadcasts(); } catch {}
+        
+        const data = await contentService.getLiveContent(teacherId || 'all');
+        
         setContent(prevContent => {
           if (data.length > 0 && currentIndex >= data.length) {
             setCurrentIndex(0);
@@ -84,11 +86,11 @@ export default function LiveBroadcast() {
           }
           return data;
         });
-      } catch (error) { console.error('Live fetch error:', error); }
+      } catch (error) { console.error('Fetch error:', error); }
       finally { setLoading(false); }
     }
-    fetchLive();
-    const interval = setInterval(fetchLive, 15000); 
+    fetchLiveContent();
+    const interval = setInterval(fetchLiveContent, 15000); 
     return () => clearInterval(interval);
   }, [teacherId]);
 

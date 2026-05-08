@@ -24,16 +24,17 @@ export function Sidebar({ onClose }) {
   const { user, logout } = useAuth();
   const role = user?.profile?.role;
 
-  const teacherLinks = [
     { name: 'Dashboard', href: '/teacher/dashboard', icon: LayoutDashboard },
     { name: 'Upload Content', href: '/teacher/upload', icon: Upload },
     { name: 'My Content', href: '/teacher/content', icon: FileText },
+    { name: 'Live Broadcast', href: '/live/all', icon: Radio },
   ];
 
   const principalLinks = [
     { name: 'Dashboard', href: '/principal/dashboard', icon: LayoutDashboard },
     { name: 'Pending Approvals', href: '/principal/pending', icon: CheckCircle },
     { name: 'All Content', href: '/principal/content', icon: Users },
+    { name: 'Live Broadcast', href: '/live/all', icon: Radio },
     { name: 'Broadcast History', href: '/principal/history', icon: History },
     { name: 'Manage Staff', href: '/principal/manage', icon: UserPlus },
   ];
