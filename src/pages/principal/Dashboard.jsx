@@ -4,7 +4,7 @@ import { contentService } from '@/services/content.service';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { StatsCards } from '@/components/shared/StatsCards';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Users, ArrowRight, Play, Clock, ShieldCheck, BarChart3 } from 'lucide-react';
+import { CheckCircle, Users, ArrowRight, Play, Clock, ShieldCheck, BarChart3, History, Radio, StopCircle, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -20,6 +20,8 @@ export default function PrincipalDashboard() {
   useEffect(() => {
     async function fetchStats() {
       try {
+        // Also trigger auto-expire on dashboard load
+        await contentService.autoExpireBroadcasts();
         const data = await contentService.getStats('principal');
         setStats(data);
       } catch (error) {
@@ -58,7 +60,7 @@ export default function PrincipalDashboard() {
         <StatsCards stats={stats} loading={loading} />
 
         {/* Action Cards */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Link to="/principal/pending" className="group">
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-200 transition-all h-full">
               <div className="flex items-center justify-between mb-4">
@@ -82,7 +84,17 @@ export default function PrincipalDashboard() {
                 <Users className="h-6 w-6" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Content Library</h3>
-              <p className="text-sm text-slate-500">Browse and filter all submissions from teachers.</p>
+              <p className="text-sm text-slate-500">Browse, stop, or delete submissions.</p>
+            </div>
+          </Link>
+
+          <Link to="/principal/history" className="group">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-violet-200 transition-all h-full">
+              <div className="p-3 bg-violet-50 text-violet-600 rounded-xl w-fit mb-4 group-hover:bg-violet-500 group-hover:text-white transition-colors">
+                <History className="h-6 w-6" />
+              </div>
+              <h3 className="font-bold text-slate-900 mb-1">Broadcast History</h3>
+              <p className="text-sm text-slate-500">Track all broadcasting events.</p>
             </div>
           </Link>
 
@@ -92,7 +104,7 @@ export default function PrincipalDashboard() {
                 <Play className="h-6 w-6" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Live Broadcast</h3>
-              <p className="text-sm text-slate-500">Monitor what students are seeing right now.</p>
+              <p className="text-sm text-slate-500">Monitor what students see now.</p>
             </div>
           </Link>
         </div>
@@ -112,6 +124,13 @@ export default function PrincipalDashboard() {
                 <span className="text-sm font-bold text-slate-900">{stats?.total || 0}</span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <Radio className="h-3.5 w-3.5 text-emerald-500" />
+                  <span className="text-sm text-slate-600">Currently Broadcasting</span>
+                </div>
+                <span className="text-sm font-bold text-emerald-600">{stats?.broadcasting || 0}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
                 <span className="text-sm text-slate-600">Approval Rate</span>
                 <span className="text-sm font-bold text-emerald-600">
                   {stats?.total ? Math.round((stats.approved / stats.total) * 100) : 0}%
@@ -122,6 +141,13 @@ export default function PrincipalDashboard() {
                 <span className="text-sm font-bold text-rose-600">
                   {stats?.total ? Math.round((stats.rejected / stats.total) * 100) : 0}%
                 </span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <Trash2 className="h-3.5 w-3.5 text-red-400" />
+                  <span className="text-sm text-slate-600">Deleted Content</span>
+                </div>
+                <span className="text-sm font-bold text-red-600">{stats?.deleted || 0}</span>
               </div>
               <div className="flex items-center justify-between py-2">
                 <span className="text-sm text-slate-600">Awaiting Action</span>

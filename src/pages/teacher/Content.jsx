@@ -19,7 +19,12 @@ import {
   AlertCircle,
   Clock,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Trash2,
+  StopCircle,
+  Radio,
+  AlertTriangle,
+  Info
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -30,6 +35,7 @@ export default function TeacherContent() {
   const [content, setContent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showDeleted, setShowDeleted] = useState(false);
 
   useEffect(() => {
     async function fetchContent() {
@@ -45,13 +51,55 @@ export default function TeacherContent() {
     if (user?.id) fetchContent();
   }, [user]);
 
-  const filteredContent = content.filter(item => 
-    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.subject.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredContent = content.filter(item => {
+    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.subject.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (showDeleted) {
+      return matchesSearch && item.is_deleted;
+    }
+    return matchesSearch;
+  });
 
-  const getStatusBadge = (status) => {
-    switch (status) {
+  const deletedCount = content.filter(i => i.is_deleted).length;
+  const stoppedCount = content.filter(i => i.is_broadcasting === false && !i.is_deleted && i.status === 'approved').length;
+
+  const getStatusBadge = (item) => {
+    // Deleted content
+    if (item.is_deleted) {
+      return (
+        <Badge className="bg-red-100 text-red-700 border-red-200 gap-1">
+          <Trash2 className="h-3 w-3" /> Deleted by Principal
+        </Badge>
+      );
+    }
+
+    // Stopped content
+    if (item.status === 'approved' && item.is_broadcasting === false) {
+      return (
+        <Badge className="bg-orange-100 text-orange-700 border-orange-200 gap-1">
+          <StopCircle className="h-3 w-3" /> Broadcasting Stopped
+        </Badge>
+      );
+    }
+
+    // Check if live
+    const now = new Date();
+    const isLive = item.status === 'approved'
+      && item.is_broadcasting !== false
+      && item.start_time && item.end_time
+      && new Date(item.start_time) <= now
+      && new Date(item.end_time) >= now;
+
+    if (isLive) {
+      return (
+        <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 gap-1 animate-pulse">
+          <Radio className="h-3 w-3" /> Live Now
+        </Badge>
+      );
+    }
+
+    switch (item.status) {
       case 'approved':
         return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100"><CheckCircle2 className="h-3 w-3 mr-1" /> Approved</Badge>;
       case 'rejected':
@@ -76,6 +124,50 @@ export default function TeacherContent() {
           </Link>
         </div>
 
+        {/* Alerts for deleted / stopped content */}
+        {(deletedCount > 0 || stoppedCount > 0) && (
+          <div className="flex flex-col sm:flex-row gap-3">
+            {deletedCount > 0 && (
+              <button 
+                onClick={() => setShowDeleted(!showDeleted)}
+                className={`flex items-center gap-3 p-4 rounded-xl border transition-all text-left flex-1 ${
+                  showDeleted 
+                    ? 'bg-red-50 border-red-200 shadow-sm shadow-red-100' 
+                    : 'bg-white border-slate-200 hover:border-red-200 hover:bg-red-50/50'
+                }`}
+              >
+                <div className={`p-2 rounded-lg ${showDeleted ? 'bg-red-100' : 'bg-red-50'}`}>
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-slate-900">
+                    {deletedCount} Deleted Content{deletedCount !== 1 ? 's' : ''}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {showDeleted ? 'Showing deleted content' : 'Click to view deleted content with reasons'}
+                  </p>
+                </div>
+                <Badge className={`${showDeleted ? 'bg-red-500 text-white' : 'bg-red-100 text-red-600'} text-xs`}>
+                  {showDeleted ? 'Viewing' : deletedCount}
+                </Badge>
+              </button>
+            )}
+            {stoppedCount > 0 && (
+              <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-xl border border-amber-200 flex-1">
+                <div className="p-2 bg-amber-100 rounded-lg">
+                  <StopCircle className="h-4 w-4 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900">
+                    {stoppedCount} Broadcast{stoppedCount !== 1 ? 's' : ''} Stopped
+                  </p>
+                  <p className="text-xs text-slate-500">Broadcasting paused by principal</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex items-center gap-3">
             <div className="relative flex-1 max-w-sm">
@@ -88,6 +180,16 @@ export default function TeacherContent() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            {showDeleted && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-slate-500 text-xs"
+                onClick={() => setShowDeleted(false)}
+              >
+                Show All
+              </Button>
+            )}
           </div>
 
           <Table>
@@ -118,21 +220,30 @@ export default function TeacherContent() {
                       <div className="p-4 bg-slate-50 rounded-full mb-3">
                         <FileText className="h-8 w-8" />
                       </div>
-                      <p className="font-medium text-slate-900">No content found</p>
-                      <p className="text-sm">Try adjusting your search or upload something new.</p>
+                      <p className="font-medium text-slate-900">
+                        {showDeleted ? 'No deleted content found' : 'No content found'}
+                      </p>
+                      <p className="text-sm">
+                        {showDeleted ? 'No content has been deleted by the principal.' : 'Try adjusting your search or upload something new.'}
+                      </p>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredContent.map((item) => (
-                  <TableRow key={item.id} className="group hover:bg-slate-50/50 transition-colors">
+                  <TableRow key={item.id} className={`group hover:bg-slate-50/50 transition-colors ${item.is_deleted ? 'bg-red-50/30' : ''}`}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-16 rounded-md overflow-hidden bg-slate-100 border border-slate-200">
+                        <div className={`h-10 w-16 rounded-md overflow-hidden bg-slate-100 border border-slate-200 relative ${item.is_deleted ? 'opacity-50' : ''}`}>
                           <img src={item.file_url} alt="" className="w-full h-full object-cover" />
+                          {item.is_deleted && (
+                            <div className="absolute inset-0 bg-red-500/20 flex items-center justify-center">
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </div>
+                          )}
                         </div>
                         <div>
-                          <p className="font-semibold text-slate-900">{item.title}</p>
+                          <p className={`font-semibold ${item.is_deleted ? 'text-slate-400 line-through' : 'text-slate-900'}`}>{item.title}</p>
                           <p className="text-xs text-slate-500 truncate max-w-[200px]">{item.description || 'No description'}</p>
                         </div>
                       </div>
@@ -152,21 +263,61 @@ export default function TeacherContent() {
                     </TableCell>
                     <TableCell>
                       <div className="space-y-2">
-                        {getStatusBadge(item.status)}
-                        {item.status === 'rejected' && (
-                          <div className="flex items-start gap-1.5 p-2 bg-rose-50 rounded-lg text-[11px] text-rose-700 border border-rose-100 max-w-[180px]">
+                        {getStatusBadge(item)}
+                        
+                        {/* Rejection reason */}
+                        {item.status === 'rejected' && !item.is_deleted && (
+                          <div className="flex items-start gap-1.5 p-2 bg-rose-50 rounded-lg text-[11px] text-rose-700 border border-rose-100 max-w-[220px]">
                             <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
                             <p><span className="font-bold">Reason:</span> {item.rejection_reason || 'No reason provided'}</p>
+                          </div>
+                        )}
+
+                        {/* Deletion reason — shown prominently */}
+                        {item.is_deleted && (
+                          <div className="flex items-start gap-1.5 p-2.5 bg-red-50 rounded-lg text-[11px] text-red-700 border border-red-200 max-w-[260px]">
+                            <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-red-500" />
+                            <div>
+                              <p className="font-bold mb-0.5">Deletion Reason:</p>
+                              <p className="leading-relaxed">{item.deletion_reason || 'No reason provided'}</p>
+                              {item.deleted_at && (
+                                <p className="text-[10px] text-red-400 mt-1">
+                                  Deleted on {format(new Date(item.deleted_at), 'MMM d, yyyy \'at\' HH:mm')}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Stop reason */}
+                        {!item.is_deleted && item.is_broadcasting === false && item.stop_reason && item.status === 'approved' && (
+                          <div className="flex items-start gap-1.5 p-2 bg-amber-50 rounded-lg text-[11px] text-amber-700 border border-amber-200 max-w-[220px]">
+                            <StopCircle className="h-3 w-3 shrink-0 mt-0.5 text-amber-500" />
+                            <div>
+                              <p className="font-bold mb-0.5">Stop Reason:</p>
+                              <p>{item.stop_reason}</p>
+                              {item.stopped_at && (
+                                <p className="text-[10px] text-amber-400 mt-1">
+                                  Stopped on {format(new Date(item.stopped_at), 'MMM d, yyyy \'at\' HH:mm')}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" className="hover:text-teal-600 hover:bg-teal-50" asChild>
-                        <a href={item.file_url} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
+                      {!item.is_deleted ? (
+                        <Button variant="ghost" size="icon" className="hover:text-teal-600 hover:bg-teal-50" asChild>
+                          <a href={item.file_url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      ) : (
+                        <Badge variant="outline" className="text-[10px] text-red-400 border-red-200">
+                          Removed
+                        </Badge>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

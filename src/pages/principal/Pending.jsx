@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { contentService } from '@/services/content.service';
+import { useAuth } from '@/context/AuthContext';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { ApprovalModal } from '@/components/principal/ApprovalModal';
 import { 
@@ -25,6 +26,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 export default function PrincipalPending() {
+  const { user } = useAuth();
   const [content, setContent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -57,6 +59,15 @@ export default function PrincipalPending() {
     try {
       const status = modalMode === 'approve' ? 'approved' : 'rejected';
       await contentService.updateContentStatus(selectedItem.id, status, reason);
+      
+      // Record in broadcast history
+      await contentService.addBroadcastHistory(
+        selectedItem.id, 
+        status, 
+        user?.id, 
+        reason || (status === 'approved' ? 'Content approved for broadcasting' : reason)
+      );
+      
       toast.success(`Content ${status} successfully`);
       fetchPending();
     } catch (error) {

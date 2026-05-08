@@ -75,18 +75,29 @@ export default function LiveBroadcast() {
     checkAccess();
   }, [user]);
 
-  // Fetch live content
+  // Fetch live content — refreshes every 15s for timely auto-stop
   useEffect(() => {
     async function fetchLive() {
       try {
+        // Also trigger server-side auto-expire
+        await contentService.autoExpireBroadcasts();
         const data = await contentService.getLiveContent(teacherId);
-        setContent(data);
-        if (data.length > 0 && timeLeft === 0) setTimeLeft(data[0].rotation_duration || 10);
+        setContent(prevContent => {
+          // If the current index would be out of bounds with new data, reset to 0
+          if (data.length > 0 && currentIndex >= data.length) {
+            setCurrentIndex(0);
+            setTimeLeft(data[0].rotation_duration || 10);
+          }
+          if (data.length > 0 && prevContent.length === 0) {
+            setTimeLeft(data[0].rotation_duration || 10);
+          }
+          return data;
+        });
       } catch (error) { console.error('Live fetch error:', error); }
       finally { setLoading(false); }
     }
     fetchLive();
-    const interval = setInterval(fetchLive, 60000);
+    const interval = setInterval(fetchLive, 15000); // Check every 15s for timely expiration
     return () => clearInterval(interval);
   }, [teacherId]);
 

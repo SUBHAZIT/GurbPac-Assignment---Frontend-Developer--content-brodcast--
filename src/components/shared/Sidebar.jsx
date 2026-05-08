@@ -34,6 +34,7 @@ export function Sidebar({ onClose }) {
     { name: 'Dashboard', href: '/principal/dashboard', icon: LayoutDashboard },
     { name: 'Pending Approvals', href: '/principal/pending', icon: CheckCircle },
     { name: 'All Content', href: '/principal/content', icon: Users },
+    { name: 'Broadcast History', href: '/principal/history', icon: History },
     { name: 'Manage Staff', href: '/principal/manage', icon: UserPlus },
   ];
 

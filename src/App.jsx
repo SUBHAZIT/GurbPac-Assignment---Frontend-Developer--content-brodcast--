@@ -8,6 +8,7 @@ import PrincipalDashboard from '@/pages/principal/Dashboard';
 import PrincipalPending from '@/pages/principal/Pending';
 import PrincipalAllContent from '@/pages/principal/AllContent';
 import ManageTeachers from '@/pages/principal/ManageTeachers';
+import BroadcastHistory from '@/pages/principal/BroadcastHistory';
 import ProfilePage from '@/pages/shared/Profile';
 import AdminSetup from '@/pages/admin/Setup';
 import LiveBroadcast from '@/pages/live/LiveBroadcast';
@@ -34,6 +35,7 @@ function App() {
       <Route path="/principal/pending" element={<PrincipalPending />} />
       <Route path="/principal/content" element={<PrincipalAllContent />} />
       <Route path="/principal/manage" element={<ManageTeachers />} />
+      <Route path="/principal/history" element={<BroadcastHistory />} />
       
       {/* Admin Bootstrap (remove in production) */}
       <Route path="/admin/setup" element={<AdminSetup />} />
