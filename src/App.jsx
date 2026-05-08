@@ -14,6 +14,7 @@ import AdminSetup from '@/pages/admin/Setup';
 import LiveBroadcast from '@/pages/live/LiveBroadcast';
 import ViewerDashboard from '@/pages/viewer/Dashboard';
 import RootRedirect from '@/components/shared/RootRedirect';
+import PreviewPage from '@/pages/shared/Preview';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
       
       {/* Shared Routes */}
       <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/preview" element={<PreviewPage />} />
 
       {/* Teacher Routes */}
       <Route path="/teacher/dashboard" element={<TeacherDashboard />} />

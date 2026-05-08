@@ -24,7 +24,12 @@ import {
   StopCircle,
   Radio,
   AlertTriangle,
-  Info
+  Info,
+  Film,
+  Image as ImageIcon,
+  Music,
+  FileText,
+  File
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -235,7 +240,17 @@ export default function TeacherContent() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className={`h-10 w-16 rounded-md overflow-hidden bg-slate-100 border border-slate-200 relative ${item.is_deleted ? 'opacity-50' : ''}`}>
-                          <img src={item.file_url} alt="" className="w-full h-full object-cover" />
+                          {item.file_type === 'video' ? (
+                            <video src={item.file_url} className="w-full h-full object-cover" muted />
+                          ) : item.file_type === 'image' ? (
+                            <img src={item.file_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-50">
+                              {item.file_type === 'pdf' ? <FileText className="h-4 w-4" /> :
+                               item.file_type === 'audio' ? <Music className="h-4 w-4" /> :
+                               <File className="h-4 w-4" />}
+                            </div>
+                          )}
                           {item.is_deleted && (
                             <div className="absolute inset-0 bg-red-500/20 flex items-center justify-center">
                               <Trash2 className="h-4 w-4 text-red-600" />
@@ -308,11 +323,14 @@ export default function TeacherContent() {
                     </TableCell>
                     <TableCell className="text-right">
                       {!item.is_deleted ? (
-                        <Button variant="ghost" size="icon" className="hover:text-teal-600 hover:bg-teal-50" asChild>
-                          <a href={item.file_url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4" />
+                        <div className="flex items-center justify-end">
+                          <a href={`/preview?url=${encodeURIComponent(item.file_url)}&type=${item.file_type}`} target="_blank" rel="noopener noreferrer">
+                            <Button variant="ghost" size="sm" className="gap-2 text-slate-600 hover:text-teal-600 hover:bg-teal-50">
+                              <ExternalLink className="h-4 w-4" />
+                              Preview
+                            </Button>
                           </a>
-                        </Button>
+                        </div>
                       ) : (
                         <Badge variant="outline" className="text-[10px] text-red-400 border-red-200">
                           Removed

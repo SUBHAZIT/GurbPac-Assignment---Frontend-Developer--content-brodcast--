@@ -45,7 +45,7 @@ export const contentService = {
 
     const { error: uploadError } = await supabase.storage
       .from('content-files')
-      .upload(filePath, file);
+      .upload(filePath, file, { contentType: file.type });
 
     if (uploadError) throw uploadError;
 
@@ -302,10 +302,10 @@ export const contentService = {
         .eq('is_deleted', false);
     }
 
-    // Always filter by time window for auto-stop
+    // Filter by time window for auto-stop, but allow nulls for legacy content
     query = query
-      .lte('start_time', now)
-      .gte('end_time', now)
+      .or(`start_time.lte.${now},start_time.is.null`)
+      .or(`end_time.gte.${now},end_time.is.null`)
       .order('created_at', { ascending: false });
 
     if (teacherId !== 'all') {

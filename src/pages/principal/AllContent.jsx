@@ -32,8 +32,12 @@ import {
   Trash2,
   Play,
   Radio,
-  AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  Film,
+  Image as ImageIcon,
+  Music,
+  FileText,
+  File
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -238,7 +242,17 @@ export default function PrincipalAllContent() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="h-8 w-12 rounded bg-slate-100 border border-slate-200 overflow-hidden shrink-0 relative">
-                          <img src={item.file_url} alt="" className="w-full h-full object-cover" />
+                          {item.file_type === 'video' ? (
+                            <video src={item.file_url} className="w-full h-full object-cover" muted />
+                          ) : item.file_type === 'image' ? (
+                            <img src={item.file_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-50">
+                              {item.file_type === 'pdf' ? <FileText className="h-3 w-3" /> :
+                               item.file_type === 'audio' ? <Music className="h-3 w-3" /> :
+                               <File className="h-3 w-3" />}
+                            </div>
+                          )}
                           {item.is_deleted && (
                             <div className="absolute inset-0 bg-red-500/20 flex items-center justify-center">
                               <Trash2 className="h-3 w-3 text-red-600" />
@@ -284,7 +298,7 @@ export default function PrincipalAllContent() {
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         {/* View link */}
-                        <a href={item.file_url} target="_blank" rel="noopener noreferrer">
+                        <a href={`/preview?url=${encodeURIComponent(item.file_url)}&type=${item.file_type}`} target="_blank" rel="noopener noreferrer">
                           <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-teal-600 hover:bg-teal-50">
                             <ExternalLink className="h-3.5 w-3.5" />
                           </Button>

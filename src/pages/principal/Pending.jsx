@@ -20,7 +20,12 @@ import {
   User, 
   Calendar, 
   Loader2,
-  FileSearch
+  FileSearch,
+  Film,
+  Image as ImageIcon,
+  Music,
+  FileText,
+  File
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -121,7 +126,17 @@ export default function PrincipalPending() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="h-12 w-20 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
-                          <img src={item.file_url} alt="" className="w-full h-full object-cover" />
+                          {item.file_type === 'video' ? (
+                            <video src={item.file_url} className="w-full h-full object-cover" muted />
+                          ) : item.file_type === 'image' ? (
+                            <img src={item.file_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-50">
+                              {item.file_type === 'pdf' ? <FileText className="h-5 w-5" /> :
+                               item.file_type === 'audio' ? <Music className="h-5 w-5" /> :
+                               <File className="h-5 w-5" />}
+                            </div>
+                          )}
                         </div>
                         <div className="min-w-0">
                           <p className="font-bold text-slate-900 truncate">{item.title}</p>
@@ -150,7 +165,7 @@ export default function PrincipalPending() {
                           className="h-8 gap-1.5"
                           asChild
                         >
-                          <a href={item.file_url} target="_blank" rel="noopener noreferrer">
+                          <a href={`/preview?url=${encodeURIComponent(item.file_url)}&type=${item.file_type}`} target="_blank" rel="noopener noreferrer">
                             <Eye className="h-3.5 w-3.5" /> Preview
                           </a>
                         </Button>
