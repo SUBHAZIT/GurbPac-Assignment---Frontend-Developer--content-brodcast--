@@ -90,7 +90,7 @@ export const contentService = {
   async getPendingContent() {
     let query = supabase
       .from('content')
-      .select('*, profiles(full_name, email)')
+      .select('*, profiles!content_teacher_id_fkey(full_name, email)')
       .eq('status', 'pending');
 
     // Only filter by is_deleted if the column exists
@@ -106,7 +106,7 @@ export const contentService = {
   async getAllContent(filters = {}) {
     let query = supabase
       .from('content')
-      .select('*, profiles(full_name, email)');
+      .select('*, profiles!content_teacher_id_fkey(full_name, email)');
 
     if (filters.status && filters.status !== 'all') {
       query = query.eq('status', filters.status);
@@ -267,7 +267,7 @@ export const contentService = {
     try {
       let query = supabase
         .from('broadcast_history')
-        .select('*, content(id, title, subject, file_type, teacher_id, profiles(full_name)), profiles(full_name, role)');
+        .select('*, content(id, title, subject, file_type, teacher_id, profiles!content_teacher_id_fkey(full_name)), profiles!broadcast_history_performed_by_fkey(full_name, role)');
 
       if (filters.action && filters.action !== 'all') {
         query = query.eq('action', filters.action);
