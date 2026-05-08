@@ -297,35 +297,42 @@ export const contentService = {
   },
 
   async getLiveContent(teacherId) {
-    const newCols = await hasNewColumns();
-    const now = new Date().toISOString();
+    try {
+      const newCols = await hasNewColumns();
+      const now = new Date().toISOString();
 
-    let query = supabase
-      .from('content')
-      .select('*')
-      .eq('status', 'approved');
+      let query = supabase
+        .from('content')
+        .select('*, profiles!content_teacher_id_fkey(full_name, email)')
+        .eq('status', 'approved');
 
-    // Apply new column filters only if migration has been run
-    if (newCols) {
-      // Use OR to allow NULLs for legacy compatibility
-      query = query
-        .or('is_broadcasting.eq.true,is_broadcasting.is.null')
-        .or('is_deleted.eq.false,is_deleted.is.null');
+      if (newCols) {
+        query = query
+          .or('is_broadcasting.is.null,is_broadcasting.eq.true')
+          .or('is_deleted.is.null,is_deleted.eq.false');
+      }
+
+      // Show if end_time is null or >= now
+      // (We skip start_time check for now to be permissive, or use a simpler OR)
+      query = query.or(`end_time.is.null,end_time.gte."${now}"`);
+
+      if (teacherId && teacherId !== 'all') {
+        query = query.eq('teacher_id', teacherId);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Database error in getLiveContent:', error);
+        throw error;
+      }
+
+      console.log(`Live broadcast fetch: Found ${data?.length || 0} items for teacher: ${teacherId}`);
+      return data || [];
+    } catch (err) {
+      console.error('Critical error in getLiveContent:', err);
+      return [];
     }
-
-    // Filter by time window for auto-stop, but allow nulls for legacy content
-    query = query
-      .or(`start_time.lte.${now},start_time.is.null`)
-      .or(`end_time.gte.${now},end_time.is.null`)
-      .order('created_at', { ascending: false });
-
-    if (teacherId !== 'all') {
-      query = query.eq('teacher_id', teacherId);
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
   },
 
   /**
